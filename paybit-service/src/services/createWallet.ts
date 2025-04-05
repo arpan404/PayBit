@@ -1,88 +1,79 @@
 import axios from 'axios';
+import { bitcoinConfig } from '../utils/constants';
 
-export default async function createWalletAndGenerateTaprootAddress(userId: string): Promise<string | undefined> {
+export default async function createWalletAndGenerateTaprootAddressRegtest(userId: string): Promise<string | undefined> {
     try {
-        const rpcUrl = 'http://localhost:8332';
-        const rpcUser = 'bitcoinrpc';
-        const rpcPassword = 'Password123';
-
-        const auth = {
-            auth: {
-                username: rpcUser,
-                password: rpcPassword
-            }
-        };
-
+        const rpcUrl = bitcoinConfig.rpcUrl;
+        const rpcUser = bitcoinConfig.rpcUser;
+        const rpcPassword = bitcoinConfig.rpcPassword;
+        const auth = { auth: { username: rpcUser, password: rpcPassword } };
         const walletName = `user_wallet_${userId}`;
 
-        // Step 1: Check which wallets are currently loaded
+        // Check which wallets are currently loaded
         const listWalletsRes = await axios.post(rpcUrl, {
             jsonrpc: "1.0",
-            id: "listwallets",
+            id: "listwallets_regtest",
             method: "listwallets",
             params: []
         }, auth);
 
         const loadedWallets: string[] = listWalletsRes.data.result;
 
-        // Step 2: If not loaded, try to load it
+        // Load or create wallet if needed
         if (!loadedWallets.includes(walletName)) {
             try {
                 await axios.post(rpcUrl, {
                     jsonrpc: "1.0",
-                    id: "load_wallet",
+                    id: "load_wallet_regtest",
                     method: "loadwallet",
                     params: [walletName]
                 }, auth);
-                console.log(`Wallet loaded: ${walletName}`);
             } catch (loadErr: any) {
-                // Check for any error that suggests the wallet doesn't exist or path is invalid
-                if (loadErr.response?.data?.error?.message?.includes("not found") ||
-                    loadErr.response?.data?.error?.message?.includes("Path does not exist") ||
-                    loadErr.response?.data?.error?.code === -18) {
-                    // If wallet doesn't exist, create it
+                const errorCode = loadErr.response?.data?.error?.code;
+                
+                if (errorCode === -18 || errorCode === -3 || 
+                    loadErr.response?.data?.error?.message?.includes("not found")) {
                     await axios.post(rpcUrl, {
                         jsonrpc: "1.0",
-                        id: "create_wallet",
+                        id: "create_wallet_regtest",
                         method: "createwallet",
                         params: [walletName]
                     }, auth);
-                    console.log(`Wallet created: ${walletName}`);
                 } else {
                     throw loadErr;
                 }
             }
-        } else {
-            console.log(`Wallet already loaded: ${walletName}`);
         }
 
-        // Step 3: Generate Taproot address from the specific wallet
+        // Generate address from the wallet
         const walletRpcUrl = `${rpcUrl}/wallet/${walletName}`;
-        // For Bitcoin Core versions that don't directly support "taproot" as an address type
-        // Use bech32m (which is the encoding for Taproot/SegWit v1)
-        const addressRes = await axios.post(walletRpcUrl, {
-            jsonrpc: "1.0",
-            id: "generate_address",
-            method: "getnewaddress",
-            params: ["", "bech32m"]
-        }, auth);
         
-        // If bech32m also fails, fallback to default address type
-        if (addressRes.data?.error) {
-            console.log(`Failed with bech32m, falling back to default address type`);
-            const fallbackRes = await axios.post(walletRpcUrl, {
-            jsonrpc: "1.0",
-            id: "generate_address",
-            method: "getnewaddress",
-            params: []
+        try {
+            const addressRes = await axios.post(walletRpcUrl, {
+                jsonrpc: "1.0",
+                id: "generate_address_bech32m_regtest",
+                method: "getnewaddress",
+                params: ["", "bech32m"]
             }, auth);
-            addressRes.data = fallbackRes.data;
+
+            if (addressRes.data.error) {
+                const fallbackRes = await axios.post(walletRpcUrl, {
+                    jsonrpc: "1.0",
+                    id: "generate_address_fallback_regtest",
+                    method: "getnewaddress",
+                    params: []
+                }, auth);
+                
+                return fallbackRes.data.result;
+            }
+            
+            return addressRes.data.result;
+        } catch(addrErr) {
+            throw addrErr;
         }
 
-        const taprootAddress = addressRes.data.result;
-        return taprootAddress;
     } catch (error: any) {
-        console.error('Error:', error.response ? error.response.data : error.message);
+        console.error(`Error creating wallet or generating address: ${error.message}`);
         return undefined;
     }
 }

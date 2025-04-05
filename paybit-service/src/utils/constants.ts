@@ -6,3 +6,9 @@ export const TRANSACTION_TYPES = [
   "withdrawal",
   "deposit",
 ];
+
+export const bitcoinConfig = {
+  rpcUrl: "http://localhost:18443",
+  rpcUser: "bitcoinrpc",
+  rpcPassword: "Password123"
+};

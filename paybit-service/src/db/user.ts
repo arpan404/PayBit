@@ -19,7 +19,8 @@ const UserSchema: Schema = new Schema(
     password: { type: String, required: true },
     profileImage: { type: String, default: "" },
     uid: { type: String, required: true, unique: true },
-    taprootAddress: { type: String, default: "", unique: true },
+    tapRootAddress: { type: String, default: "" },
+    walletAddress: { type: String, default: "" },
   },
   {
     timestamps: true,

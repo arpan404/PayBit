@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../../db/user";
+import getBitcoinBalance from "../../services/getBalance";
 
 // Login handler
 export const login = async (req: Request, res: Response): Promise<void> => {
@@ -59,7 +60,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
 
     // Sign token
-    jwt.sign(payload, jwtSecret, { expiresIn: "7d" }, (err, token) => {
+    jwt.sign(payload, jwtSecret, { expiresIn: "7d" }, async (err, token) => {
       if (err) {
         console.error("Token error:", err);
         res.status(500).json({
@@ -71,6 +72,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       }
 
       // Prepare user data
+      const balance = await getBitcoinBalance(String(user._id))
       const userData = {
         id: user._id,
         uid: user.uid,
@@ -79,6 +81,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         profileImage: user.profileImage,
         tapRootAddress: user.tapRootAddress,
         walletAddress: user.walletAddress,
+        balance: balance,
       };
 
       res.status(200).json({
