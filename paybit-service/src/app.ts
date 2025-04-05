@@ -5,6 +5,10 @@ import winston from 'winston';
 import { v4 as uuidv4 } from 'uuid';
 import connectDB from './db/connect';
 import authRoutes from './routes/auth';
+import { config } from 'dotenv';
+
+// Load environment variables from .env file
+config();
 
 const logger = winston.createLogger({
     level: process.env.LOG_LEVEL || 'info',
@@ -51,7 +55,7 @@ app.use(helmet());
 
 app.use(morgan(':method :url :status :response-time ms - :res[content-length]', {
     stream: {
-        write: (message: string) => logger.http(message.trim())
+        write: (message: string) => logger.info(message.trim())
     }
 }));
 
@@ -60,11 +64,11 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 
-app.get('/', (req: Request, res: Response) => {
+app.get('/', (_req: Request, res: Response) => {
     res.send('PayBit API is running');
 });
 
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
     const requestId = req.headers['x-request-id'] as string;
     logger.error('Unhandled error', {
         requestId,
