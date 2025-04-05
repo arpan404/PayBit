@@ -5,10 +5,12 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
+import { useTheme } from '../context/ThemeContext';
 
 const HelpSupportScreen = () => {
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { colors, isDarkMode } = useTheme();
 
     const handleBackPress = () => {
         router.back();
@@ -19,17 +21,14 @@ const HelpSupportScreen = () => {
     };
 
     const handleFAQ = () => {
-        // Navigate to FAQ page or open FAQ modal
         Alert.alert('Coming Soon', 'FAQ section will be available soon');
     };
 
     const handleTerms = () => {
-        // Navigate to Terms page or open Terms modal
         Alert.alert('Coming Soon', 'Terms and Conditions will be available soon');
     };
 
     const handlePrivacy = () => {
-        // Navigate to Privacy page or open Privacy modal
         Alert.alert('Coming Soon', 'Privacy Policy will be available soon');
     };
 
@@ -44,28 +43,28 @@ const HelpSupportScreen = () => {
         subtitle?: string;
         onPress: () => void;
     }) => (
-        <TouchableOpacity style={styles.option} onPress={onPress}>
+        <TouchableOpacity style={[styles.option, { borderBottomColor: colors.border }]} onPress={onPress}>
             <View style={styles.optionContent}>
-                <View style={styles.iconContainer}>
-                    <Ionicons name={icon} size={24} color="#F7931A" />
+                <View style={[styles.iconContainer, { backgroundColor: `${colors.primary}20` }]}>
+                    <Ionicons name={icon} size={24} color={colors.primary} />
                 </View>
                 <View style={styles.textContainer}>
-                    <Text style={styles.optionTitle}>{title}</Text>
-                    {subtitle && <Text style={styles.optionSubtitle}>{subtitle}</Text>}
+                    <Text style={[styles.optionTitle, { color: colors.text }]}>{title}</Text>
+                    {subtitle && <Text style={[styles.optionSubtitle, { color: colors.textSecondary }]}>{subtitle}</Text>}
                 </View>
             </View>
-            <Ionicons name="chevron-forward" size={24} color="#666666" />
+            <Ionicons name="chevron-forward" size={24} color={colors.textSecondary} />
         </TouchableOpacity>
     );
 
     return (
-        <View style={styles.container}>
-            <StatusBar style="light" />
-            <View style={[styles.header, { paddingTop: insets.top }]}>
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+            <StatusBar style={isDarkMode ? "light" : "dark"} />
+            <View style={[styles.header, { paddingTop: insets.top, backgroundColor: colors.background }]}>
                 <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-                    <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+                    <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Help & Support</Text>
+                <Text style={[styles.headerTitle, { color: colors.text }]}>Help & Support</Text>
                 <View style={styles.placeholder} />
             </View>
 
@@ -75,8 +74,8 @@ const HelpSupportScreen = () => {
                     contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 30 }]}
                     showsVerticalScrollIndicator={false}
                 >
-                    <BlurView intensity={20} style={styles.section}>
-                        <Text style={styles.sectionTitle}>Support</Text>
+                    <BlurView intensity={20} tint={isDarkMode ? "dark" : "light"} style={[styles.section, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.sectionTitle, { color: colors.text }]}>Support</Text>
                         <SupportOption
                             icon="mail"
                             title="Contact Support"
@@ -91,8 +90,8 @@ const HelpSupportScreen = () => {
                         />
                     </BlurView>
 
-                    <BlurView intensity={20} style={styles.section}>
-                        <Text style={styles.sectionTitle}>Legal</Text>
+                    <BlurView intensity={20} tint={isDarkMode ? "dark" : "light"} style={[styles.section, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.sectionTitle, { color: colors.text }]}>Legal</Text>
                         <SupportOption
                             icon="document-text"
                             title="Terms of Service"
@@ -108,7 +107,7 @@ const HelpSupportScreen = () => {
                     </BlurView>
 
                     <View style={styles.versionContainer}>
-                        <Text style={styles.versionText}>Version 1.0.0</Text>
+                        <Text style={[styles.versionText, { color: colors.textSecondary }]}>Version 1.0.0</Text>
                     </View>
                 </ScrollView>
             </SafeAreaView>
@@ -119,7 +118,6 @@ const HelpSupportScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#121212',
     },
     safeArea: {
         flex: 1,
@@ -130,7 +128,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingBottom: 20,
-        backgroundColor: '#121212',
     },
     backButton: {
         width: 40,
@@ -141,7 +138,6 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#FFFFFF',
         textAlign: 'center',
         flex: 1,
     },
@@ -155,7 +151,6 @@ const styles = StyleSheet.create({
         paddingBottom: 40,
     },
     section: {
-        backgroundColor: 'rgba(26, 26, 26, 0.7)',
         borderRadius: 16,
         marginHorizontal: 16,
         marginBottom: 16,
@@ -166,7 +161,6 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#FFFFFF',
         marginBottom: 16,
         paddingHorizontal: 16,
         paddingTop: 16,
@@ -178,7 +172,6 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         paddingHorizontal: 16,
         borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255, 255, 255, 0.1)',
     },
     optionContent: {
         flexDirection: 'row',
@@ -189,7 +182,6 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: 'rgba(247, 147, 26, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
@@ -201,12 +193,10 @@ const styles = StyleSheet.create({
     optionTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#FFFFFF',
         marginBottom: 2,
     },
     optionSubtitle: {
         fontSize: 14,
-        color: '#AAAAAA',
         lineHeight: 18,
     },
     versionContainer: {
@@ -215,7 +205,6 @@ const styles = StyleSheet.create({
     },
     versionText: {
         fontSize: 14,
-        color: '#666666',
     },
 });
 

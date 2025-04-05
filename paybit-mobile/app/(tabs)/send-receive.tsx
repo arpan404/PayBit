@@ -5,9 +5,11 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '../../context/ThemeContext';
 
 const SendReceiveScreen = () => {
     const insets = useSafeAreaInsets();
+    const { colors, isDarkMode } = useTheme();
     const [activeTab, setActiveTab] = useState<'send' | 'request'>('send');
     const [amount, setAmount] = useState('');
     const [address, setAddress] = useState('');
@@ -51,14 +53,14 @@ const SendReceiveScreen = () => {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar style="light" />
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+            <StatusBar style={isDarkMode ? "light" : "dark"} />
 
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>Transfer</Text>
+                <Text style={[styles.headerTitle, { color: colors.text }]}>Transfer</Text>
             </View>
 
-            <View style={styles.tabsContainer}>
+            <View style={[styles.tabsContainer, { backgroundColor: colors.card }]}>
                 <TouchableOpacity
                     style={[styles.tab, activeTab === 'send' && styles.activeTab]}
                     onPress={() => setActiveTab('send')}
@@ -78,49 +80,49 @@ const SendReceiveScreen = () => {
                 style={styles.contentContainer}
                 contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 80 }]}
             >
-                <BlurView intensity={20} tint="dark" style={styles.formContainer}>
+                <BlurView intensity={20} tint={isDarkMode ? "dark" : "light"} style={styles.formContainer}>
                     <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>Amount (BTC)</Text>
-                        <View style={styles.amountContainer}>
+                        <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Amount (BTC)</Text>
+                        <View style={[styles.amountContainer, { backgroundColor: colors.border }]}>
                             <TextInput
-                                style={styles.amountInput}
+                                style={[styles.amountInput, { color: colors.text }]}
                                 value={amount}
                                 onChangeText={setAmount}
                                 placeholder="0.00"
-                                placeholderTextColor="#888888"
+                                placeholderTextColor={colors.textSecondary}
                                 keyboardType="decimal-pad"
                             />
-                            <Text style={styles.btcLabel}>BTC</Text>
+                            <Text style={[styles.btcLabel, { color: colors.primary }]}>BTC</Text>
                         </View>
-                        <Text style={styles.usdEquivalent}>≈ $0.00 USD</Text>
+                        <Text style={[styles.usdEquivalent, { color: colors.textSecondary }]}>≈ $0.00 USD</Text>
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>
+                        <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>
                             {activeTab === 'send' ? 'Recipient Address' : 'Your Address'}
                         </Text>
-                        <View style={styles.addressInputContainer}>
+                        <View style={[styles.addressInputContainer, { backgroundColor: colors.border }]}>
                             <TextInput
-                                style={styles.addressInput}
+                                style={[styles.addressInput, { color: colors.text }]}
                                 value={address}
                                 onChangeText={setAddress}
                                 placeholder={activeTab === 'send' ? "Enter wallet address" : "Your BTC address to share"}
-                                placeholderTextColor="#888888"
+                                placeholderTextColor={colors.textSecondary}
                             />
                             <TouchableOpacity style={styles.scanButton}>
-                                <Ionicons name="qr-code-outline" size={20} color="#FFFFFF" />
+                                <Ionicons name="qr-code-outline" size={20} color={colors.text} />
                             </TouchableOpacity>
                         </View>
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>Note (Optional)</Text>
+                        <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Note (Optional)</Text>
                         <TextInput
-                            style={styles.noteInput}
+                            style={[styles.noteInput, { color: colors.text, backgroundColor: colors.border }]}
                             value={note}
                             onChangeText={setNote}
                             placeholder="Add a note"
-                            placeholderTextColor="#888888"
+                            placeholderTextColor={colors.textSecondary}
                             multiline
                         />
                     </View>
@@ -129,7 +131,7 @@ const SendReceiveScreen = () => {
                         style={styles.actionButton}
                         onPress={activeTab === 'send' ? handleSend : handleRequest}
                     >
-                        <View style={styles.gradientButton}>
+                        <View style={[styles.gradientButton, { backgroundColor: colors.primary }]}>
                             <Text style={styles.actionButtonText}>
                                 {activeTab === 'send' ? 'Send Bitcoin' : 'Request Bitcoin'}
                             </Text>
@@ -138,15 +140,15 @@ const SendReceiveScreen = () => {
                 </BlurView>
 
                 {activeTab === 'send' && (
-                    <BlurView intensity={20} tint="dark" style={styles.recentContactsContainer}>
-                        <Text style={styles.recentContactsTitle}>Recent Contacts</Text>
+                    <BlurView intensity={20} tint={isDarkMode ? "dark" : "light"} style={styles.recentContactsContainer}>
+                        <Text style={[styles.recentContactsTitle, { color: colors.text }]}>Recent Contacts</Text>
                         <View style={styles.contactsList}>
                             {['Alice', 'Bob', 'Charlie'].map((contact, index) => (
                                 <TouchableOpacity key={index} style={styles.contactItem}>
-                                    <View style={styles.contactAvatar}>
-                                        <Text style={styles.contactInitial}>{contact[0]}</Text>
+                                    <View style={[styles.contactAvatar, { backgroundColor: colors.border }]}>
+                                        <Text style={[styles.contactInitial, { color: colors.text }]}>{contact[0]}</Text>
                                     </View>
-                                    <Text style={styles.contactName}>{contact}</Text>
+                                    <Text style={[styles.contactName, { color: colors.text }]}>{contact}</Text>
                                 </TouchableOpacity>
                             ))}
                         </View>
@@ -160,7 +162,6 @@ const SendReceiveScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#121212',
     },
     header: {
         paddingHorizontal: 16,
@@ -172,13 +173,11 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#FFFFFF',
     },
     tabsContainer: {
         flexDirection: 'row',
         marginHorizontal: 16,
         marginBottom: 16,
-        backgroundColor: '#1A1A1A',
         borderRadius: 12,
         padding: 4,
     },
@@ -196,7 +195,6 @@ const styles = StyleSheet.create({
     tabText: {
         fontSize: 16,
         fontWeight: '500',
-        color: '#AAAAAA',
     },
     activeTabText: {
         color: '#F7931A',
@@ -219,29 +217,24 @@ const styles = StyleSheet.create({
     },
     inputLabel: {
         fontSize: 14,
-        color: '#CCCCCC',
         marginBottom: 8,
     },
     amountContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#2A2A2A',
         borderRadius: 12,
         paddingHorizontal: 12,
         paddingVertical: 14,
     },
     amountInput: {
         flex: 1,
-        color: '#FFFFFF',
         fontSize: 16,
     },
     btcLabel: {
-        color: '#F7931A',
         fontWeight: '500',
         marginLeft: 4,
     },
     usdEquivalent: {
-        color: '#888888',
         fontSize: 14,
         marginTop: 8,
         textAlign: 'right',
@@ -249,14 +242,12 @@ const styles = StyleSheet.create({
     addressInputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#2A2A2A',
         borderRadius: 12,
         paddingHorizontal: 12,
         paddingVertical: 14,
     },
     addressInput: {
         flex: 1,
-        color: '#FFFFFF',
         fontSize: 16,
     },
     scanButton: {
@@ -264,12 +255,11 @@ const styles = StyleSheet.create({
     },
     noteInput: {
         flex: 1,
-        color: '#FFFFFF',
         fontSize: 16,
         padding: 12,
+        borderRadius: 12,
     },
     actionButton: {
-        backgroundColor: '#F7931A',
         borderRadius: 12,
         overflow: 'hidden',
     },
@@ -293,7 +283,6 @@ const styles = StyleSheet.create({
     recentContactsTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#FFFFFF',
         marginBottom: 20,
     },
     contactsList: {
@@ -310,17 +299,14 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#2A2A2A',
         justifyContent: 'center',
         alignItems: 'center',
     },
     contactInitial: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#FFFFFF',
     },
     contactName: {
-        color: '#FFFFFF',
         fontSize: 16,
         marginLeft: 8,
     },

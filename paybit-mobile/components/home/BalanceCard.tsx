@@ -1,7 +1,14 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions } from 'react-native';
-import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, { useState, useRef } from "react";
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    Animated,
+    Dimensions,
+} from "react-native";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
 
 interface BalanceCardProps {
     balance: number;
@@ -9,7 +16,7 @@ interface BalanceCardProps {
     lastUpdated: string;
 }
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 const BalanceCard = ({ balance, fiatValue, lastUpdated }: BalanceCardProps) => {
     const [currentSlide, setCurrentSlide] = useState(0);
@@ -30,7 +37,7 @@ const BalanceCard = ({ balance, fiatValue, lastUpdated }: BalanceCardProps) => {
         <TouchableOpacity onPress={handleSlide} activeOpacity={0.9}>
             <BlurView intensity={20} style={styles.container}>
                 <LinearGradient
-                    colors={['#F7931A', '#000000']}
+                    colors={["#F7931A", "#000000"]}
                     style={styles.gradient}
                     start={{ x: 1, y: 0 }}
                     end={{ x: 0, y: 1 }}
@@ -69,11 +76,15 @@ const BalanceCard = ({ balance, fiatValue, lastUpdated }: BalanceCardProps) => {
                                 <View style={styles.rateContainer}>
                                     <View style={styles.rateRow}>
                                         <Text style={styles.rateLabel}>BTC/USD</Text>
-                                        <Text style={styles.rateValue}>${(fiatValue / balance).toFixed(2)}</Text>
+                                        <Text style={styles.rateValue}>
+                                            ${(fiatValue / balance).toFixed(2)}
+                                        </Text>
                                     </View>
                                     <View style={styles.rateRow}>
                                         <Text style={styles.rateLabel}>BTC/EUR</Text>
-                                        <Text style={styles.rateValue}>€{((fiatValue / balance) * 0.92).toFixed(2)}</Text>
+                                        <Text style={styles.rateValue}>
+                                            €{((fiatValue / balance) * 0.92).toFixed(2)}
+                                        </Text>
                                     </View>
                                 </View>
                             </View>
@@ -102,108 +113,110 @@ const styles = StyleSheet.create({
         marginHorizontal: 16,
         marginBottom: 24,
         borderRadius: 16,
-        overflow: 'hidden',
+        overflow: "hidden",
     },
     gradient: {
         padding: 20,
         borderRadius: 16,
     },
     slideContainer: {
-        flexDirection: 'row',
+        flexDirection: "row",
         width: width * 2 - 32,
     },
     slide: {
         width: width - 32,
-        alignItems: 'flex-start',
+        alignItems: "flex-start",
     },
     slideContent: {
-        width: '100%',
+        width: "100%",
         paddingHorizontal: 8,
     },
     balanceLabel: {
         fontSize: 12,
-        color: '#FFFFFF',
+        color: "#FFFFFF",
         opacity: 0.8,
         marginBottom: 16,
         letterSpacing: 1.5,
-        fontWeight: '700',
-        textTransform: 'uppercase',
+        fontWeight: "700",
+        textTransform: "uppercase",
     },
     balanceRow: {
-        flexDirection: 'row',
-        alignItems: 'baseline',
+        flexDirection: "row",
+        alignItems: "baseline",
         marginBottom: 12,
     },
     balanceValue: {
         fontSize: 40,
-        fontWeight: '700',
-        color: '#FFFFFF',
+        fontWeight: "700",
+        color: "#FFFFFF",
         marginRight: 8,
         letterSpacing: 0.5,
     },
     currencyLabel: {
         fontSize: 20,
-        color: '#FFFFFF',
+        color: "#FFFFFF",
         opacity: 0.9,
-        fontWeight: '600',
+        fontWeight: "600",
     },
     fiatRow: {
-        flexDirection: 'row',
-        alignItems: 'baseline',
+        flexDirection: "row",
+        alignItems: "baseline",
     },
     fiatValue: {
         fontSize: 28,
-        fontWeight: '700',
-        color: '#FFFFFF',
+        fontWeight: "700",
+        color: "#FFFFFF",
         marginRight: 8,
         letterSpacing: 0.5,
     },
     rateContainer: {
-        width: '100%',
+        width: "100%",
         marginTop: 12,
-        paddingRight: 8,
     },
     rateRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 16,
-        paddingHorizontal: 8,
+        flexWrap: 'wrap',
+        marginRight: 10,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 15,
     },
     rateLabel: {
+        flex: 1,
         fontSize: 16,
-        color: '#FFFFFF',
+        color: "#FFFFFF",
         opacity: 0.8,
-        fontWeight: '600',
+        fontWeight: "600",
     },
     rateValue: {
+        flex: 1,
         fontSize: 22,
-        fontWeight: '700',
-        color: '#FFFFFF',
+        fontWeight: "700",
+        color: "#FFFFFF",
         letterSpacing: 0.5,
     },
     indicatorContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
+        flexDirection: "row",
+        justifyContent: "center",
         marginTop: 20,
     },
     indicator: {
         width: 6,
         height: 6,
         borderRadius: 3,
-        backgroundColor: 'rgba(255, 255, 255, 0.3)',
+        backgroundColor: "rgba(255, 255, 255, 0.3)",
         marginHorizontal: 3,
     },
     activeIndicator: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: "#FFFFFF",
     },
     lastUpdated: {
         fontSize: 12,
-        color: '#FFFFFF',
+        color: "#FFFFFF",
         opacity: 0.6,
-        textAlign: 'center',
+        textAlign: "center",
         marginTop: 8,
     },
 });
 
-export default BalanceCard; 
+export default BalanceCard;

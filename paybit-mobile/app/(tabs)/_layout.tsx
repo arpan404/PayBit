@@ -4,32 +4,40 @@ import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../../context/ThemeContext';
 
 interface QRButtonProps {
   color: string;
   size: number;
 }
 
-const QRButton = ({ color, size }: QRButtonProps) => (
-  <View style={styles.qrButtonContainer}>
-    <View style={styles.qrButtonBackground}>
-
-      <Ionicons name="qr-code" size={size + 12} color="#FFFFFF" />
+const QRButton = ({ color, size }: QRButtonProps) => {
+  return (
+    <View style={styles.qrButtonContainer}>
+      <LinearGradient
+        colors={['#F7931A', '#000000']}
+        style={styles.qrButtonGradient}
+        start={{ x: 1, y: 0 }}
+        end={{ x: 0, y: 1 }}
+      >
+        <Ionicons name="qr-code" size={size + 12} color="#FFFFFF" />
+      </LinearGradient>
     </View>
-  </View>
-);
+  );
+};
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  const { colors, isDarkMode } = useTheme();
 
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: '#F7931A',
-        tabBarInactiveTintColor: '#888888',
+        tabBarInactiveTintColor: colors.textSecondary,
         tabBarStyle: {
-          backgroundColor: '#1A1A1A',
-          borderTopColor: '#333333',
+          backgroundColor: colors.card,
+          borderTopColor: colors.border,
           height: 70 + insets.bottom,
           paddingBottom: insets.bottom > 0 ? insets.bottom : 20,
           paddingTop: 5,
@@ -86,22 +94,20 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   qrButtonContainer: {
-    height: 60,
-    width: 60,
-    marginBottom: 15,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    overflow: 'hidden',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
-  qrButtonBackground: {
-    height: 60,
-    width: 60,
-    borderRadius: 30,
+  qrButtonGradient: {
+    width: '100%',
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#F7931A',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.6,
-    shadowRadius: 8,
-    elevation: 10,
-    borderWidth: 3,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
 });

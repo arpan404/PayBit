@@ -1,18 +1,29 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert, ScrollView, Modal, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Alert, Modal, TouchableOpacity, FlatList, Image, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import { useTheme } from '../../context/ThemeContext';
 
 import Header from '../../components/home/Header';
 import BalanceCard from '../../components/home/BalanceCard';
 import QuickActions from '../../components/home/QuickActions';
-import TransactionsList, { Transaction } from '../../components/home/TransactionsList';
+import TransactionsList from '../../components/home/TransactionsList';
 import ProfileScreen from '../../components/profile/Profile';
 
 interface HomeScreenProps {
-  navigation?: any; // Optional navigation prop
+  navigation?: any;
+}
+
+interface Transaction {
+  id: string;
+  type: 'sent' | 'received';
+  amount: string;
+  fiatAmount: string;
+  recipient: string;
+  timestamp: string;
 }
 
 // Mock data
@@ -24,6 +35,8 @@ interface User {
 }
 
 const HomeScreen = ({ navigation }: HomeScreenProps) => {
+  const router = useRouter();
+  const { colors, isDarkMode } = useTheme();
   const [showProfile, setShowProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
@@ -34,43 +47,41 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
     userImage: undefined,
   });
 
-  const [balance, setBalance] = useState(0.025);
-  const [fiatValue, setFiatValue] = useState(1232.50);
+  const [balance, setBalance] = useState('0.025');
+  const [fiatValue, setFiatValue] = useState('1232.50');
 
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([
     {
       id: '1',
-      type: 'receive',
-      amount: 240.50,
+      type: 'received',
+      amount: '0.001',
+      fiatAmount: '$50.00',
       recipient: 'James Wilson',
-      date: '2023-08-15',
-      status: 'completed'
+      timestamp: '2 hours ago'
     },
     {
       id: '2',
-      type: 'send',
-      amount: 120.75,
+      type: 'sent',
+      amount: '0.002',
+      fiatAmount: '$100.00',
       recipient: 'Sarah Johnson',
-      date: '2023-08-14',
-      status: 'completed'
+      timestamp: '1 day ago'
     },
     {
       id: '3',
-      type: 'receive',
-      amount: 500.00,
+      type: 'received',
+      amount: '0.005',
+      fiatAmount: '$250.00',
       recipient: 'Michael Brown',
-      date: '2023-08-12',
-      status: 'completed'
+      timestamp: '2 days ago'
     },
   ]);
 
   const handleProfilePress = () => {
-    // Show the profile modal for photo change
     setShowProfile(true);
   };
 
   const handleSettingsPress = () => {
-    // Show the settings modal
     setShowSettings(true);
   };
 
@@ -87,23 +98,74 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
   };
 
   const handleSeeAllTransactions = () => {
-    Alert.alert('All Transactions', 'View all transactions');
+    router.push('/transactions');
   };
 
-  const handleTransactionPress = (transaction: Transaction) => {
-    Alert.alert(
-      'Transaction Details',
-      `${transaction.type === 'send' ? 'Sent to' : 'Received from'}: ${transaction.recipient}\nAmount: $${transaction.amount.toFixed(2)}\nDate: ${transaction.date}\nStatus: ${transaction.status}`
-    );
+  const handleTransactionPress = (transaction: any) => {
+    Alert.alert('Transaction Details', `Transaction ID: ${transaction.id}`);
   };
 
   const handleQRPress = () => {
     Alert.alert('QR Code', 'QR Code scanner will be implemented here');
   };
 
+  const renderHeader = () => (
+    <View style={styles.headerContainer}>
+      <TouchableOpacity onPress={handleProfilePress} style={styles.avatarButton}>
+        <LinearGradient
+          colors={['#F7931A', '#000000']}
+          style={styles.avatarGradient}
+          start={{ x: 1, y: 0 }}
+          end={{ x: 0, y: 1 }}
+        >
+          {user.userImage ? (
+            <Image source={{ uri: user.userImage }} style={styles.avatarImage} />
+          ) : (
+            <Text style={styles.avatarText}>{user.firstName.charAt(0)}</Text>
+          )}
+        </LinearGradient>
+      </TouchableOpacity>
+      <Header
+        userName={`${user.firstName} ${user.lastName}`}
+        onProfilePress={handleProfilePress}
+      />
+    </View>
+  );
+
+  const renderBalanceCard = () => (
+    <BalanceCard
+      balance={parseFloat(balance)}
+      fiatValue={parseFloat(fiatValue)}
+      lastUpdated="2 minutes ago"
+    />
+  );
+
+  const renderQuickActions = () => (
+    <QuickActions
+      onRequest={handleRequest}
+      onQuickPay={handleQuickPay}
+      onWallet={handleWallet}
+    />
+  );
+
+  const renderTransactionsList = () => (
+    <TransactionsList
+      transactions={recentTransactions}
+      onSeeAllPress={handleSeeAllTransactions}
+      onTransactionPress={handleTransactionPress}
+    />
+  );
+
+  const renderContent = () => (
+    <View style={styles.content}>
+      {renderBalanceCard()}
+      {renderQuickActions()}
+      {renderTransactionsList()}
+    </View>
+  );
+
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Profile Modal - For photo and quick profile options */}
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <Modal
         animationType="slide"
         transparent={false}
@@ -113,7 +175,6 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
         <ProfileScreen onClose={() => setShowProfile(false)} />
       </Modal>
 
-      {/* Settings Modal - For app settings */}
       <Modal
         animationType="slide"
         transparent={false}
@@ -123,35 +184,19 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
         <ProfileScreen onClose={() => setShowSettings(false)} />
       </Modal>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <StatusBar style="light" />
+      <StatusBar style={isDarkMode ? "light" : "dark"} />
 
-        <Header
-          userName={`${user.firstName} ${user.lastName}`}
-          userImage={user.userImage}
-          onProfilePress={handleProfilePress}
-        />
-
-        <View style={styles.content}>
-          <BalanceCard
-            balance={balance}
-            fiatValue={fiatValue}
-            lastUpdated="2 minutes ago"
-          />
-
-          <QuickActions
-            onRequest={handleRequest}
-            onQuickPay={handleQuickPay}
-            onWallet={handleWallet}
-          />
-
-          <TransactionsList
-            transactions={recentTransactions}
-            onSeeAllPress={handleSeeAllTransactions}
-            onTransactionPress={handleTransactionPress}
-          />
-        </View>
-      </ScrollView>
+      <FlatList
+        data={[1]} // Single item to render all content
+        renderItem={() => (
+          <>
+            {renderHeader()}
+            {renderContent()}
+          </>
+        )}
+        keyExtractor={() => 'home-content'}
+        showsVerticalScrollIndicator={false}
+      />
 
       <TouchableOpacity style={styles.qrButton} onPress={handleQRPress}>
         <LinearGradient
@@ -170,36 +215,58 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
   },
-  scrollContent: {
-    flexGrow: 1,
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    flex: 1,
+  },
+  avatarButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    overflow: 'hidden',
+    marginRight: 12,
+  },
+  avatarGradient: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+  },
+  avatarText: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   content: {
     flex: 1,
-    paddingTop: 16,
+    paddingBottom: 20,
   },
   qrButton: {
     position: 'absolute',
-    bottom: 30,
-    alignSelf: 'center',
-    width: 45,
-    height: 45,
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 10,
+    right: 20,
+    bottom: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    overflow: 'hidden',
+    elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    overflow: 'hidden',
+    shadowRadius: 4,
   },
   qrButtonGradient: {
-    flex: 1,
+    width: '100%',
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 15,
   },
 });
 

@@ -5,10 +5,12 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
+import { useTheme } from '../context/ThemeContext';
 
 const NotificationsScreen = () => {
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { colors, isDarkMode } = useTheme();
     const [settings, setSettings] = useState({
         pushNotifications: true,
         emailNotifications: true,
@@ -41,33 +43,33 @@ const NotificationsScreen = () => {
         value: boolean;
         onToggle: () => void;
     }) => (
-        <View style={styles.option}>
+        <View style={[styles.option, { borderBottomColor: colors.border }]}>
             <View style={styles.optionContent}>
-                <View style={styles.iconContainer}>
-                    <Ionicons name={icon} size={24} color="#F7931A" />
+                <View style={[styles.iconContainer, { backgroundColor: `${colors.primary}20` }]}>
+                    <Ionicons name={icon} size={24} color={colors.primary} />
                 </View>
                 <View style={styles.textContainer}>
-                    <Text style={styles.optionTitle}>{title}</Text>
-                    {subtitle && <Text style={styles.optionSubtitle}>{subtitle}</Text>}
+                    <Text style={[styles.optionTitle, { color: colors.text }]}>{title}</Text>
+                    {subtitle && <Text style={[styles.optionSubtitle, { color: colors.textSecondary }]}>{subtitle}</Text>}
                 </View>
             </View>
             <Switch
                 value={value}
                 onValueChange={onToggle}
-                trackColor={{ false: '#767577', true: '#F7931A' }}
+                trackColor={{ false: colors.border, true: colors.primary }}
                 thumbColor={value ? '#FFFFFF' : '#f4f3f4'}
             />
         </View>
     );
 
     return (
-        <View style={styles.container}>
-            <StatusBar style="light" />
-            <View style={[styles.header, { paddingTop: insets.top }]}>
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+            <StatusBar style={isDarkMode ? "light" : "dark"} />
+            <View style={[styles.header, { paddingTop: insets.top, backgroundColor: colors.background }]}>
                 <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-                    <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+                    <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Notifications</Text>
+                <Text style={[styles.headerTitle, { color: colors.text }]}>Notifications</Text>
                 <View style={styles.placeholder} />
             </View>
 
@@ -77,8 +79,8 @@ const NotificationsScreen = () => {
                     contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 30 }]}
                     showsVerticalScrollIndicator={false}
                 >
-                    <BlurView intensity={20} style={styles.section}>
-                        <Text style={styles.sectionTitle}>Push Notifications</Text>
+                    <BlurView intensity={20} tint={isDarkMode ? "dark" : "light"} style={[styles.section, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.sectionTitle, { color: colors.text }]}>Push Notifications</Text>
                         <NotificationOption
                             icon="notifications"
                             title="Push Notifications"
@@ -95,8 +97,8 @@ const NotificationsScreen = () => {
                         />
                     </BlurView>
 
-                    <BlurView intensity={20} style={styles.section}>
-                        <Text style={styles.sectionTitle}>Alerts</Text>
+                    <BlurView intensity={20} tint={isDarkMode ? "dark" : "light"} style={[styles.section, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.sectionTitle, { color: colors.text }]}>Alerts</Text>
                         <NotificationOption
                             icon="cash"
                             title="Transaction Alerts"
@@ -113,8 +115,8 @@ const NotificationsScreen = () => {
                         />
                     </BlurView>
 
-                    <BlurView intensity={20} style={styles.section}>
-                        <Text style={styles.sectionTitle}>Marketing</Text>
+                    <BlurView intensity={20} tint={isDarkMode ? "dark" : "light"} style={[styles.section, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.sectionTitle, { color: colors.text }]}>Marketing</Text>
                         <NotificationOption
                             icon="megaphone"
                             title="Marketing Emails"
@@ -132,7 +134,6 @@ const NotificationsScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#121212',
     },
     safeArea: {
         flex: 1,
@@ -143,7 +144,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingBottom: 20,
-        backgroundColor: '#121212',
     },
     backButton: {
         width: 40,
@@ -154,7 +154,6 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#FFFFFF',
         textAlign: 'center',
         flex: 1,
     },
@@ -168,7 +167,6 @@ const styles = StyleSheet.create({
         paddingBottom: 40,
     },
     section: {
-        backgroundColor: 'rgba(26, 26, 26, 0.7)',
         borderRadius: 16,
         marginHorizontal: 16,
         marginBottom: 16,
@@ -179,7 +177,6 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#FFFFFF',
         marginBottom: 16,
         paddingHorizontal: 16,
         paddingTop: 16,
@@ -191,7 +188,6 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         paddingHorizontal: 16,
         borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255, 255, 255, 0.1)',
     },
     optionContent: {
         flexDirection: 'row',
@@ -202,7 +198,6 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: 'rgba(247, 147, 26, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
@@ -214,12 +209,10 @@ const styles = StyleSheet.create({
     optionTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#FFFFFF',
         marginBottom: 2,
     },
     optionSubtitle: {
         fontSize: 14,
-        color: '#AAAAAA',
         lineHeight: 18,
     },
 });
