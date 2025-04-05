@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import jwt from "jsonwebtoken";
 import User from "../../db/user";
 import { validateEmail, validatePassword } from "../../utils/validation";
+import createWalletAndGenerateTaprootAddress from "../../services/createWallet";
 
 // Signup controller
 export const signup = async (req: Request, res: Response): Promise<void> => {
@@ -66,6 +67,7 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
       email,
       password: hashedPassword,
       profileImage: profileImage || "",
+      
       uid,
     });
 
@@ -74,11 +76,30 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
 
     // Prepare user data (no password)
     const userData = {
+      id: newUser._id,
       uid: newUser.uid,
       fullname: newUser.fullname,
       email: newUser.email,
       profileImage: newUser.profileImage,
+      tapRootAddress: undefined as string | undefined,
+      walletAddress: `user_wallet_${newUser._id}`,
     };
+
+    const tapRootAddress = await createWalletAndGenerateTaprootAddress(
+      String(newUser._id));
+    if (!tapRootAddress) {
+      res.status(500).json({
+        success: false,
+        code: "signup-e8",
+        message: "Wallet creation failed",
+      });
+      return;
+    }
+    // Update user with taproot address
+    newUser.tapRootAddress = tapRootAddress;
+    newUser.walletAddress = userData.walletAddress;
+    userData.tapRootAddress = tapRootAddress;
+    await newUser.save();
 
     // Payload for JWT
     const payload = {
@@ -108,7 +129,6 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
         });
         return;
       }
-
       // Return user data and token
       res.status(201).json({
         success: true,

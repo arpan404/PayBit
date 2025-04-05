@@ -6,6 +6,10 @@ export interface IUser extends Document {
   password: string;
   profileImage: string;
   uid: string;
+  tapRootAddress?: string;
+  walletAddress?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const UserSchema: Schema = new Schema(
@@ -15,6 +19,7 @@ const UserSchema: Schema = new Schema(
     password: { type: String, required: true },
     profileImage: { type: String, default: "" },
     uid: { type: String, required: true, unique: true },
+    taprootAddress: { type: String, default: "", unique: true },
   },
   {
     timestamps: true,

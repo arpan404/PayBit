@@ -56,6 +56,8 @@ export const autoLogin = async (req: Request, res: Response): Promise<void> => {
         fullname: user.fullname,
         email: user.email,
         profileImage: user.profileImage,
+        tapRootAddress: user.tapRootAddress,
+        walletAddress: user.walletAddress,
       };
 
       // Send response

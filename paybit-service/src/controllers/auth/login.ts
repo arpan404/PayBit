@@ -72,10 +72,13 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
       // Prepare user data
       const userData = {
+        id: user._id,
         uid: user.uid,
         fullname: user.fullname,
         email: user.email,
         profileImage: user.profileImage,
+        tapRootAddress: user.tapRootAddress,
+        walletAddress: user.walletAddress,
       };
 
       res.status(200).json({
