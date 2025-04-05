@@ -20,7 +20,6 @@ export const createCampaign = async (
     const user = await User.findById(req.user.id);
     if (!user) {
       res.status(404).json({
-        
         success: false,
         code: "donation-e2",
         message: "User not found",

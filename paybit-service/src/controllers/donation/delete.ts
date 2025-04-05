@@ -20,7 +20,7 @@ export const deleteCampaign = async (
       res.status(401).json({
         success: false,
         code: "delete-campaign-e1",
-        
+
         message: "User not authenticated",
       });
       return;

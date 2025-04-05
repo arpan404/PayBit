@@ -15,4 +15,3 @@ router.post("/change-password", authMiddleware, async (req, res) => {
 });
 
 export default router;
-

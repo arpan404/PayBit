@@ -12,7 +12,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     if (!email || !password) {
       res.status(400).json({
         success: false,
-        
+
         code: "login-e1",
         message: "Email and password are required",
       });

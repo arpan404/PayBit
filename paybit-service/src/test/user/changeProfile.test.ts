@@ -7,15 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcrypt";
 import app from "../../app";
 import User from "../../db/user";
-import {
-  beforeAll,
-  afterAll,
-
-  describe,
-  it,
-
-  expect,
-} from "@jest/globals";
+import { beforeAll, afterAll, describe, it, expect } from "@jest/globals";
 
 // Test user data
 const testUser = {

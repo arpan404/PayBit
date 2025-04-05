@@ -23,7 +23,6 @@ export const sendRequest = async (
       return;
     }
 
-    
     const requesterId = req.user.id;
     const { email, amount } = req.body;
 

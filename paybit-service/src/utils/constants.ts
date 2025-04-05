@@ -6,4 +6,3 @@ export const TRANSACTION_TYPES = [
   "withdrawal",
   "deposit",
 ];
-

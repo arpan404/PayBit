@@ -21,7 +21,6 @@ export const updateCampaign = async (
         success: false,
         code: "update-campaign-e1",
         message: "User not authenticated",
-        
       });
       return;
     }

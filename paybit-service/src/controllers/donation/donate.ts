@@ -20,7 +20,7 @@ export const donate = async (req: Request, res: Response): Promise<void> => {
         code: "donate-e1",
         message: "User not authenticated",
       });
-      
+
       return;
     }
 

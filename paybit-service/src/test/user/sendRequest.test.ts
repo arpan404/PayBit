@@ -343,7 +343,6 @@ describe("User - Send Money Request Controller", () => {
 
     const requestId = response.body.data.request.id;
 
-    
     // Retrieve the request from the database
     const savedRequest = await Request.findById(requestId)
       .populate("requesterId", "fullname email uid profileImage")

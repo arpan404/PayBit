@@ -18,7 +18,6 @@ beforeAll(async () => {
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(testUser.password, salt);
   await User.create({
-    
     fullname: testUser.fullname,
     email: testUser.email,
     password: hashedPassword,

@@ -20,7 +20,7 @@ import {
 // Mock the transfer service
 jest.mock("../../services/transferFunds", () => ({
   __esModule: true,
-  
+
   default: jest
     .fn()
     .mockImplementation(async (senderId, receiverId, amount) => {

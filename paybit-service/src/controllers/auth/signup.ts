@@ -17,7 +17,7 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
         code: "signup-e1",
         message: "Missing required fields",
       });
-      
+
       return;
     }
 

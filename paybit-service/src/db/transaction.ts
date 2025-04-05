@@ -80,7 +80,6 @@ const TransactionSchema: Schema = new Schema(
   },
 );
 
-
 // Create additional indexes for common queries
 TransactionSchema.index({ createdAt: -1 });
 TransactionSchema.index({ fromUserId: 1, createdAt: -1 });

@@ -23,7 +23,7 @@ const testCampaigns = [
     creatorUid: testUser.uid,
     goalAmount: 10000,
     collectedAmount: 2000,
-    
+
     image: "https://example.com/high-goal.jpg",
   },
   {

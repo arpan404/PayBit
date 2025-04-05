@@ -15,6 +15,4 @@ router.put("/campaign/:id", authMiddleware, updateCampaign);
 router.get("/campaign/:id", fetchCampaign);
 router.get("/campaign", fetchCampaign);
 
-
 export default router;
-

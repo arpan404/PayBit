@@ -93,7 +93,7 @@ export const getContacts = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error in getContacts:", error);
-    
+
     return res.status(500).json({
       success: false,
       code: "contacts-e3",

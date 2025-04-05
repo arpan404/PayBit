@@ -24,7 +24,7 @@ describe("Auth - Signup Controller", () => {
     const response = await request(app)
       .post("/api/auth/signup")
       .send(testUser)
-      
+
       .expect(201);
 
     expect(response.body).toHaveProperty("success", true);
