@@ -13,13 +13,22 @@
     },
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app uses the camera to let you update your profile picture",
+        "NSPhotoLibraryUsageDescription": "This app accesses your photos to let you update your profile picture"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#000000"
-      }
+      },
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -37,7 +46,8 @@
           "backgroundColor": "#000000"
         }
       ],
-      "expo-barcode-scanner"
+      "expo-barcode-scanner",
+      "expo-image-picker"
     ],
     "experiments": {
       "typedRoutes": true

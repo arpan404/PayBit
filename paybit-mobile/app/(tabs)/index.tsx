@@ -14,8 +14,9 @@ import TransactionsList from '../../components/home/TransactionsList';
 import ProfileScreen from '../../components/profile/Profile';
 import { useStore } from "../../services/store"
 import axios from 'axios';
-import { apiEndpoint } from '@/constants/api';
-interface HomeScreenProps {}
+import { apiEndpoint, getImageUrl } from '@/constants/api';
+
+interface HomeScreenProps { }
 
 interface Transaction {
   id: string;
@@ -140,7 +141,7 @@ const HomeScreen = () => {
           end={{ x: 0, y: 1 }}
         >
           {user.userProfileImage ? (
-            <Image source={{ uri: user.userProfileImage }} style={styles.avatarImage} />
+            <Image source={{ uri: getImageUrl(user.userProfileImage) }} style={styles.avatarImage} />
           ) : (
             <Text style={styles.avatarText}>{user.userFullName.charAt(0).toUpperCase()}</Text>
           )}
