@@ -18,11 +18,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
+import { useStore } from '../../services/store';
+import { apiEndpoint } from '@/constants/api';
 
 const SignupScreen = () => {
     const insets = useSafeAreaInsets();
     const router = useRouter();
-
+    const setUser = useStore((state) => state.setUser);
     // Form states
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -147,7 +150,7 @@ const SignupScreen = () => {
         }
     };
 
-    const handleCreateAccount = () => {
+    const handleCreateAccount = async () => {
         let isValid = true;
 
         // Validate password
@@ -170,12 +173,28 @@ const SignupScreen = () => {
         }
 
         if (isValid) {
-            // Proceed with account creation
-            Alert.alert(
-                "Success",
-                "Account created successfully!",
-                [{ text: "OK", onPress: () => navigateToLogin() }]
-            );
+
+            try {
+                const response = await axios.post(`${apiEndpoint}/api/auth/signup`, {
+                    fullname: name,
+                    email,
+                    password,
+                });
+                let data = response.data.data
+                setUser({
+                    userID: data.user.uid,
+                    userUID: data.user.id,
+                    userFullName: data.user.fullname,
+                    userProfileImage: data.user.profileImage,
+                    token: data.token,
+                    balance: '0.00',
+                    btcToUsd: 0,
+                    btcToEur: 0
+                });
+                setCurrentStep(3);
+            } catch (error) {
+                console.error('Error creating account:', error);
+            }
         }
     };
 

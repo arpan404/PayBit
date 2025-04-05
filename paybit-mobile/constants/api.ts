@@ -1,0 +1,1 @@
+export const apiEndpoint = "http://192.168.45.95:8000"

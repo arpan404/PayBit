@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
     View,
     Text,
@@ -10,23 +10,19 @@ import {
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { useCurrency } from "../../context/CurrencyContext";
+import { useStore, selectUser } from "../../services/store";
 
 interface BalanceCardProps {
-    balance: number;
-    fiatValue: number;
     lastUpdated: string;
-    btcPrice: {
-        USD: number;
-        EUR: number;
-    };
 }
 
 const { width } = Dimensions.get("window");
 
-const BalanceCard = ({ balance, fiatValue, lastUpdated, btcPrice }: BalanceCardProps) => {
+const BalanceCard = ({ lastUpdated }: BalanceCardProps) => {
     const { selectedCurrency } = useCurrency();
     const [currentSlide, setCurrentSlide] = useState(0);
     const slideAnim = useRef(new Animated.Value(0)).current;
+    const user = useStore(selectUser);
 
     const handleSlide = () => {
         const nextSlide = (currentSlide + 1) % 2;
@@ -67,12 +63,12 @@ const BalanceCard = ({ balance, fiatValue, lastUpdated, btcPrice }: BalanceCardP
                             <View style={styles.slideContent}>
                                 <Text style={styles.balanceLabel}>AVAILABLE BALANCE</Text>
                                 <View style={styles.balanceRow}>
-                                    <Text style={styles.balanceValue}>{balance.toFixed(8)}</Text>
+                                    <Text style={styles.balanceValue}>{parseFloat(user.balance).toFixed(8)}</Text>
                                     <Text style={styles.currencyLabel}>BTC</Text>
                                 </View>
                                 <View style={styles.fiatRow}>
                                     <Text style={styles.fiatValue}>
-                                        {selectedCurrency.symbol}{(balance * btcPrice[selectedCurrency.code as keyof typeof btcPrice]).toFixed(2)}
+                                        {selectedCurrency.symbol}{(parseFloat(user.balance) * user.btcToUsd).toFixed(2)}
                                     </Text>
                                     <Text style={styles.currencyLabel}>{selectedCurrency.code}</Text>
                                 </View>
@@ -85,13 +81,13 @@ const BalanceCard = ({ balance, fiatValue, lastUpdated, btcPrice }: BalanceCardP
                                     <View style={styles.rateRow}>
                                         <Text style={styles.rateLabel}>BTC/USD</Text>
                                         <Text style={styles.rateValue}>
-                                            ${btcPrice.USD.toFixed(2)}
+                                            ${user.btcToUsd.toFixed(2)}
                                         </Text>
                                     </View>
                                     <View style={styles.rateRow}>
                                         <Text style={styles.rateLabel}>BTC/EUR</Text>
                                         <Text style={styles.rateValue}>
-                                            €{btcPrice.EUR.toFixed(2)}
+                                            €{user.btcToEur.toFixed(2)}
                                         </Text>
                                     </View>
                                 </View>

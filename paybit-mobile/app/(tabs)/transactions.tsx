@@ -1,30 +1,63 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect, useCallback, memo, useMemo } from 'react';
+import {
+    View,
+    Text,
+    StyleSheet,
+    FlatList,
+    TouchableOpacity,
+    Alert,
+    ActivityIndicator,
+    RefreshControl
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../context/ThemeContext';
+import { useStore } from '../../services/store';
+import axios from 'axios';
+import { apiEndpoint } from '@/constants/api';
 
 interface Transaction {
     id: string;
-    type: 'sent' | 'received';
-    amount: string;
-    fiatAmount: string;
     date: string;
+    type: 'sent' | 'received';
+    counterpartyName: string;
+    counterpartyId: string;
+    amount: number;
+    fiatAmount: number;
+    status: 'pending' | 'completed' | 'failed' | 'reversed';
+    description: string;
+    reference: string;
+    campaignId?: string;
 }
 
-const TransactionItem = ({ item }: { item: Transaction }) => {
+interface TransactionItemProps {
+    item: Transaction;
+}
+
+const EmptyTransactionList = memo((): React.ReactElement => {
+    const { colors } = useTheme();
+    return (
+        <View style={styles.emptyContainer}>
+            <Ionicons name="receipt-outline" size={64} color={colors.textSecondary} />
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>No Transactions</Text>
+            <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+                Your transaction history will appear here
+            </Text>
+        </View>
+    );
+});
+
+const TransactionItem = memo(({ item }: TransactionItemProps): React.ReactElement => {
     const { colors } = useTheme();
     const isSent = item.type === 'sent';
 
     return (
         <TouchableOpacity
             style={[styles.transactionItem, { backgroundColor: colors.card }]}
-            onPress={() => {
-                // Handle transaction press
-            }}
+            activeOpacity={0.7}
         >
             <View style={[styles.iconContainer, { backgroundColor: isSent ? 'rgba(255, 59, 48, 0.1)' : 'rgba(52, 199, 89, 0.1)' }]}>
                 <Ionicons
@@ -51,77 +84,124 @@ const TransactionItem = ({ item }: { item: Transaction }) => {
             </View>
         </TouchableOpacity>
     );
-};
+});
 
-const TransactionsScreen = () => {
+const TransactionsScreen = (): React.ReactElement => {
     const { colors, isDarkMode } = useTheme();
+    const { user } = useStore((state: { user: any; }) => ({ user: state.user }));
+    const token = user?.token; // Access token from user if it exists
+
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [page, setPage] = useState<number>(1);
+    const [hasMore, setHasMore] = useState<boolean>(true);
+
+    // Filter states
     const [activeFilter, setActiveFilter] = useState<'all' | 'sent' | 'received'>('all');
+    const [activeStatus, setActiveStatus] = useState<'all' | 'pending' | 'completed' | 'failed' | 'reversed'>('all');
+    type SortOption = 'newest' | 'oldest' | 'amount-high' | 'amount-low';
+    const [sort, setSort] = useState<SortOption>('newest');
 
-    const [transactions, setTransactions] = useState<Transaction[]>([
-        {
-            id: '1',
-            type: 'received',
-            amount: '0.0012',
-            fiatAmount: '50.00',
-            date: '2 hours ago',
-        },
-        {
-            id: '2',
-            type: 'sent',
-            amount: '0.0005',
-            fiatAmount: '20.00',
-            date: '1 day ago',
-        },
-        {
-            id: '3',
-            type: 'received',
-            amount: '0.0012',
-            fiatAmount: '50.00',
-            date: '2 hours ago',
-        },
-        {
-            id: '4',
-            type: 'sent',
-            amount: '0.0005',
-            fiatAmount: '20.00',
-            date: '1 day ago',
-        },
-        {
-            id: '5',
-            type: 'sent',
-            amount: '0.0005',
-            fiatAmount: '20.00',
-            date: '1 day ago',
-        },
-        {
-            id: '6',
-            type: 'received',
-            amount: '0.0012',
-            fiatAmount: '50.00',
-            date: '2 hours ago',
-        },
-        {
-            id: '7',
-            type: 'sent',
-            amount: '0.0005',
-            fiatAmount: '20.00',
-            date: '1 day ago',
-        },
-    ]);
+    const fetchTransactions = useCallback(async (pageNum: number, refresh: boolean = false) => {
+        if (!user?.token) {
+            console.log('No auth token available');
+            return;
+        }
 
-    const filteredTransactions = transactions.filter(transaction => {
-        if (activeFilter === 'all') return true;
-        return transaction.type === activeFilter;
-    });
+        // Prevent concurrent requests
+        if (isLoading) return;
+        
+        try {
+            setIsLoading(true);
+            const response = await axios.get(`${apiEndpoint}/api/transaction/history`, {
+                params: {
+                    page: pageNum,
+                    limit: 10,
+                    direction: activeFilter === 'all' ? undefined : activeFilter,
+                    status: activeStatus === 'all' ? undefined : activeStatus,
+                    sort
+                },
+                headers: {
+                    'Authorization': `Bearer ${user.token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
 
-    const handleTransactionPress = (transaction: Transaction) => {
+            const newTransactions = response.data.data;
+            
+            if (refresh) {
+                setTransactions(newTransactions);
+                setPage(1);
+            } else {
+                setTransactions(prev => [...prev, ...newTransactions]);
+                setPage(pageNum);
+            }
+            
+            setHasMore(newTransactions.length === 10);
+        } catch (error: any) {
+            console.error('Error fetching transactions:', error.response?.data || error.message);
+            if (error.response?.status === 401) {
+                // Handle unauthorized error - could trigger a logout or token refresh
+                Alert.alert('Session Expired', 'Please login again');
+                // Add your logout logic here if needed
+            } else {
+                Alert.alert('Error', 'Failed to load transactions');
+            }
+        } finally {
+            setIsLoading(false);
+            setIsRefreshing(false);
+        }
+    }, [user?.token, activeFilter, activeStatus, sort]); // Remove isLoading from dependencies
+
+    // Modified useEffect to prevent infinite fetching
+    useEffect(() => {
+        const initialFetch = () => {
+            setPage(1);
+            setTransactions([]); // Clear existing transactions
+            fetchTransactions(1, true);
+        };
+
+        if (user?.token) {
+            initialFetch();
+        }
+    }, [activeFilter, activeStatus, sort, user?.token]); // Add user.token to dependencies
+
+    const handleRefresh = useCallback(async () => {
+        setIsRefreshing(true);
+        await fetchTransactions(1, true);
+        setIsRefreshing(false);
+    }, [fetchTransactions]);
+
+    const handleLoadMore = useCallback(() => {
+        if (!isLoading && hasMore) {
+            fetchTransactions(page + 1, false);
+        }
+    }, [isLoading, hasMore, page, fetchTransactions]);
+
+    // Single effect to handle both initial load and filter changes
+    useEffect(() => {
+        // Reset page and fetch only when filters change
+        setPage(1);
+        setTransactions([]); // Clear existing transactions
+        fetchTransactions(1, true);
+    }, [activeFilter, activeStatus, sort]); // Remove fetchTransactions from dependency array
+
+    const filteredTransactions = useMemo(() => {
+        return transactions.filter(transaction => {
+            if (activeFilter === 'all') return true;
+            return transaction.type === activeFilter;
+        });
+    }, [transactions, activeFilter]);
+
+    const handleTransactionPress = (transaction: Transaction): void => {
         Alert.alert(
             'Transaction Details',
             `${transaction.type === 'sent' ? 'Sent to' : 'Received from'}: ${transaction.amount} BTC\nDate: ${transaction.date}`
         );
     };
 
-    const renderTransaction = ({ item }: { item: Transaction }) => {
+    const renderTransaction = ({ item }: { item: Transaction }): React.ReactElement => {
         return (
             <TouchableOpacity
                 style={[styles.transactionItem, { backgroundColor: colors.card }]}
@@ -191,18 +271,120 @@ const TransactionsScreen = () => {
                 </TouchableOpacity>
             </View>
 
+            <View style={styles.filterRow}>
+                <TouchableOpacity
+                    style={[styles.sortButton, { backgroundColor: colors.card }]}
+                    onPress={() => {
+                        const sorts: ('newest' | 'oldest' | 'amount-high' | 'amount-low')[] =
+                            ['newest', 'oldest', 'amount-high', 'amount-low'];
+                        const currentIndex = sorts.indexOf(sort);
+                        setSort(sorts[(currentIndex + 1) % sorts.length]);
+                    }}
+                >
+                    <Ionicons name="funnel-outline" size={20} color={colors.text} />
+                    <Text style={[styles.sortText, { color: colors.text }]}>
+                        {sort.charAt(0).toUpperCase() + sort.slice(1)}
+                    </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={[styles.statusButton, { backgroundColor: colors.card }]}
+                    onPress={() => {
+                        const statuses: ('all' | 'pending' | 'completed' | 'failed' | 'reversed')[] =
+                            ['all', 'pending', 'completed', 'failed', 'reversed'];
+                        const currentIndex = statuses.indexOf(activeStatus);
+                        setActiveStatus(statuses[(currentIndex + 1) % statuses.length]);
+                    }}
+                >
+                    <Text style={[styles.statusText, { color: colors.text }]}>
+                        Status: {activeStatus.charAt(0).toUpperCase() + activeStatus.slice(1)}
+                    </Text>
+                </TouchableOpacity>
+            </View>
+
             <FlatList
                 data={filteredTransactions}
                 renderItem={renderTransaction}
-                keyExtractor={item => item.id}
+                keyExtractor={(item) => item.id}
+                ListEmptyComponent={() => (
+                    isLoading ? null : <EmptyTransactionList />
+                )}
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={isRefreshing}
+                        onRefresh={handleRefresh}
+                        tintColor={colors.text}
+                    />
+                }
+                onEndReached={handleLoadMore}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={() => (
+                    isLoading && !isRefreshing ? (
+                        <ActivityIndicator
+                            color={colors.text}
+                            style={styles.loader}
+                        />
+                    ) : null
+                )}
             />
         </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
+    emptyContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 24,
+        paddingTop: 40,
+    },
+    emptyTitle: {
+        fontSize: 20,
+        fontWeight: '600',
+        marginTop: 16,
+        marginBottom: 8,
+    },
+    emptySubtitle: {
+        fontSize: 16,
+        textAlign: 'center',
+        opacity: 0.7,
+    },
+
+    emptyText: {
+        fontSize: 16,
+        textAlign: 'center',
+    },
+    loader: {
+        padding: 20,
+    },
+    filterRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        marginBottom: 16,
+    },
+    sortButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 8,
+        borderRadius: 8,
+    },
+    sortText: {
+        marginLeft: 8,
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    statusButton: {
+        padding: 8,
+        borderRadius: 8,
+    },
+    statusText: {
+        fontSize: 14,
+        fontWeight: '500',
+    },
     container: {
         flex: 1,
     },
@@ -279,4 +461,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default TransactionsScreen; 
+export default memo(TransactionsScreen);

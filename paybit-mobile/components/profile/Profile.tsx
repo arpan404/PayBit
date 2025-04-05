@@ -7,6 +7,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../context/ThemeContext';
+import { useStore } from '@/services/store';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 
 interface ProfileOptionProps {
     icon: keyof typeof Ionicons.glyphMap;
@@ -22,6 +25,7 @@ interface ProfileScreenProps {
 }
 
 const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
+    const userData = useStore((state) => state.user);
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const { colors, isDarkMode } = useTheme();
@@ -32,13 +36,63 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
         }
     };
 
+    const handleTakePhoto = async () => {
+        try {
+            const { status } = await ImagePicker.requestCameraPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permission needed', 'Please grant camera permissions to take photos');
+                return;
+            }
+
+            const result = await ImagePicker.launchCameraAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: [1, 1],
+                quality: 0.8,
+            });
+
+            if (!result.canceled && result.assets[0].uri) {
+                // Handle the selected image
+                // Add your image upload logic here
+                console.log('Selected image:', result.assets[0].uri);
+            }
+        } catch (error) {
+            Alert.alert('Error', 'Failed to take photo');
+        }
+    };
+
+    const handleChooseFromGallery = async () => {
+        try {
+            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permission needed', 'Please grant gallery permissions to select photos');
+                return;
+            }
+
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: [1, 1],
+                quality: 0.8,
+            });
+
+            if (!result.canceled && result.assets[0].uri) {
+                // Handle the selected image
+                // Add your image upload logic here
+                console.log('Selected image:', result.assets[0].uri);
+            }
+        } catch (error) {
+            Alert.alert('Error', 'Failed to select photo');
+        }
+    };
+
     const handleChangePhoto = () => {
         Alert.alert(
             "Change Profile Photo",
             "Choose an option",
             [
-                { text: "Take Photo", onPress: () => console.log("Camera") },
-                { text: "Choose from Gallery", onPress: () => console.log("Gallery") },
+                { text: "Take Photo", onPress: handleTakePhoto },
+                { text: "Choose from Gallery", onPress: handleChooseFromGallery },
                 { text: "Cancel", style: "cancel" }
             ]
         );
@@ -125,20 +179,24 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
                 >
                     <View style={styles.profileSection}>
                         <View style={styles.avatarSection}>
-                            <LinearGradient
-                                colors={['#F7931A', '#E2761B']}
-                                style={styles.profileImage}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 1 }}
-                            >
-                                <Text style={styles.avatarText}>J</Text>
-                            </LinearGradient>
+                            {userData.userProfileImage ? (
+                                <Image
+                                    source={{ uri: userData.userProfileImage }}
+                                    style={styles.profileImage}
+                                />
+                            ) : (
+                                <View style={styles.profileImage}>
+                                    <Text style={styles.initialsText}>
+                                        {userData.userFullName?.charAt(0)?.toUpperCase() || '?'}
+                                    </Text>
+                                </View>
+                            )}
                             <TouchableOpacity style={[styles.editButton, { backgroundColor: colors.primary }]} onPress={handleChangePhoto}>
                                 <Ionicons name="camera" size={18} color="#FFFFFF" />
                             </TouchableOpacity>
                         </View>
-                        <Text style={[styles.userName, { color: colors.text }]}>John Doe</Text>
-                        <Text style={[styles.userEmail, { color: colors.textSecondary }]}>john.doe@example.com</Text>
+                        <Text style={[styles.userName, { color: colors.text }]}>{userData.userFullName}</Text>
+                        <Text style={[styles.userEmail, { color: colors.textSecondary }]}>{userData.userEmail}</Text>
                     </View>
 
                     <BlurView intensity={20} tint={isDarkMode ? "dark" : "light"} style={[styles.optionsSection, { backgroundColor: colors.card }]}>
@@ -345,6 +403,11 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '600',
     },
+    initialsText: {
+        fontSize: 60,
+        fontWeight: 'bold',
+        color: '#FFFFFF',
+    },
 });
 
-export default ProfileScreen; 
+export default ProfileScreen;

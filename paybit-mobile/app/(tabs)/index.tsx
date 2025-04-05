@@ -12,10 +12,10 @@ import BalanceCard from '../../components/home/BalanceCard';
 import QuickActions from '../../components/home/QuickActions';
 import TransactionsList from '../../components/home/TransactionsList';
 import ProfileScreen from '../../components/profile/Profile';
-
-interface HomeScreenProps {
-  navigation?: any;
-}
+import { useStore } from "../../services/store"
+import axios from 'axios';
+import { apiEndpoint } from '@/constants/api';
+interface HomeScreenProps {}
 
 interface Transaction {
   id: string;
@@ -27,42 +27,27 @@ interface Transaction {
 }
 
 // Mock data
-interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  userImage: string | undefined;
-}
 
-const HomeScreen = ({ navigation }: HomeScreenProps) => {
+
+const HomeScreen = () => {
   const router = useRouter();
   const { colors, isDarkMode } = useTheme();
   const [showProfile, setShowProfile] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
 
-  const [user, setUser] = useState<User>({
-    id: '1',
-    firstName: 'John',
-    lastName: 'Doe',
-    userImage: undefined,
-  });
-
-  const [balance, setBalance] = useState('0.025');
-  const [fiatValue, setFiatValue] = useState('1232.50');
-  const [btcPrice, setBtcPrice] = useState({
-    USD: 49300,
-    EUR: 45356
-  });
-
+  const user = useStore((state) => state.user);
+  const setUser = useStore((state) => state.setUser);
+  const [lastUpdatedTime, setLastUpdatedTime] = useState<number>(0)
+  console.log(user)
   useEffect(() => {
     const fetchBitcoinPrice = async () => {
       try {
-        const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,eur');
-        const data = await response.json();
-        setBtcPrice({
-          USD: data.bitcoin.usd,
-          EUR: data.bitcoin.eur
-        });
+        const response = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,eur');
+        setUser({
+          ...user,
+          btcToUsd: response.data.bitcoin.usd,
+          btcToEur: response.data.bitcoin.eur
+        })
+        setLastUpdatedTime(Date.now())
       } catch (error) {
         console.error('Error fetching Bitcoin price:', error);
       }
@@ -74,40 +59,48 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
     return () => clearInterval(interval);
   }, []);
 
-  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([
-    {
-      id: '1',
-      type: 'received',
-      amount: '0.001',
-      fiatAmount: '$50.00',
-      recipient: 'James Wilson',
-      timestamp: '2 hours ago'
-    },
-    {
-      id: '2',
-      type: 'sent',
-      amount: '0.002',
-      fiatAmount: '$100.00',
-      recipient: 'Sarah Johnson',
-      timestamp: '1 day ago'
-    },
-    {
-      id: '3',
-      type: 'received',
-      amount: '0.005',
-      fiatAmount: '$250.00',
-      recipient: 'Michael Brown',
-      timestamp: '2 days ago'
-    },
-  ]);
+  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
+
+  useEffect(() => {
+    const fetchRecentTransactions = async () => {
+      try {
+        const response = await axios.get(`${apiEndpoint}/api/transaction/history`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+          params: {
+            page: 1,
+            limit: 3,
+            sort: 'newest',
+          },
+        });
+
+        const transactions = response.data.data.map((tx: any) => ({
+          id: tx.id,
+          type: tx.type,
+          amount: tx.amount.toString(),
+          fiatAmount: tx.fiatAmount.toString(),
+          recipient: tx.counterpartyName,
+          timestamp: tx.date,
+        }));
+
+        setRecentTransactions(transactions);
+      } catch (error) {
+        console.error('Error fetching recent transactions:', error);
+      }
+    };
+
+    fetchRecentTransactions();
+  }, [user.token]);
+
+
+
 
   const handleProfilePress = () => {
     setShowProfile(true);
   };
 
-  const handleSettingsPress = () => {
-    setShowSettings(true);
-  };
+
 
   const handleCrowdFund = () => {
     router.push('/crowdfund');
@@ -142,26 +135,31 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
           start={{ x: 1, y: 0 }}
           end={{ x: 0, y: 1 }}
         >
-          {user.userImage ? (
-            <Image source={{ uri: user.userImage }} style={styles.avatarImage} />
+          {user.userProfileImage ? (
+            <Image source={{ uri: user.userProfileImage }} style={styles.avatarImage} />
           ) : (
-            <Text style={styles.avatarText}>{user.firstName.charAt(0)}</Text>
+            <Text style={styles.avatarText}>{user.userFullName.charAt(0).toUpperCase()}</Text>
           )}
         </LinearGradient>
       </TouchableOpacity>
       <Header
-        userName={`${user.firstName} ${user.lastName}`}
+        userName={user.userFullName}
         onProfilePress={handleProfilePress}
       />
     </View>
   );
+  const changeTimeToString = (time: number) => {
+    const currentTime = Date.now();
+    const timeDiff = (currentTime - time) / 1000;
+    if (timeDiff < 60) return `${timeDiff.toFixed(0)} seconds ago`;
+    if (timeDiff < 3600) return `${Math.floor(timeDiff / 60)} minutes ago`;
+    if (timeDiff < 86400) return `${Math.floor(timeDiff / 3600)} hours ago`;
+    return `${Math.floor(timeDiff / 86400)} days ago`;
+  };
 
   const renderBalanceCard = () => (
     <BalanceCard
-      balance={parseFloat(balance)}
-      fiatValue={parseFloat(fiatValue)}
-      lastUpdated="2 minutes ago"
-      btcPrice={btcPrice}
+      lastUpdated={changeTimeToString(lastUpdatedTime)}
     />
   );
 
@@ -200,14 +198,7 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
         <ProfileScreen onClose={() => setShowProfile(false)} />
       </Modal>
 
-      <Modal
-        animationType="slide"
-        transparent={false}
-        visible={showSettings}
-        onRequestClose={() => setShowSettings(false)}
-      >
-        <ProfileScreen onClose={() => setShowSettings(false)} />
-      </Modal>
+
 
       <StatusBar style={isDarkMode ? "light" : "dark"} />
 

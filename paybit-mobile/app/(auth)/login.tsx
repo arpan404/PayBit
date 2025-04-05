@@ -15,8 +15,11 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useStore } from '../../services/store';
+import axios from 'axios';
+import { apiEndpoint } from '@/constants/api';
 
 const LoginScreen = () => {
     const insets = useSafeAreaInsets();
@@ -26,7 +29,7 @@ const LoginScreen = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [emailError, setEmailError] = useState('');
     const [passwordError, setPasswordError] = useState('');
-
+    const setUser = useStore((state) => state.setUser);
     const navigateToSignup = () => {
         router.push('/(auth)/signup');
     };
@@ -35,7 +38,28 @@ const LoginScreen = () => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
     };
+    const fetchSignIn = async () => {
+        try {
+            const response = await axios.post(`${apiEndpoint}/api/auth/login`, { email, password });
+            let data = response.data.data
 
+            setUser({
+                userID: data.user.uid,
+                userUID: data.user.id,
+                userFullName: data.user.fullname,
+                userProfileImage: data.user.profileImage,
+                token: data.token,
+                balance: '0.00',
+                btcToUsd: 0,
+                btcToEur: 0
+            });
+            router.replace('/(tabs)');
+
+        } catch (error) {
+            console.error('Login error:', error);
+            Alert.alert('Login Failed', 'An error occurred while logging in', [{ text: 'OK' }]);
+        }
+    };
     const handleSignIn = () => {
         let isValid = true;
 
@@ -59,19 +83,7 @@ const LoginScreen = () => {
         }
 
         if (isValid) {
-            // In a real app, you would verify credentials against an API
-            // For demo purposes, we'll use demo@example.com / Password123
-            if (email === 'demo@example.com' && password === 'Password123') {
-                // Navigate to home screen
-                router.replace('/(tabs)');
-            } else {
-                // Show error for invalid credentials
-                Alert.alert(
-                    "Login Failed",
-                    "Invalid email or password. Hint: Use demo@example.com / Password123",
-                    [{ text: "OK" }]
-                );
-            }
+            fetchSignIn()
         }
     };
 

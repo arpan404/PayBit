@@ -45,6 +45,18 @@ const TransactionItem: React.FC<{ transaction: Transaction; onPress: () => void 
     );
 };
 
+const EmptyTransactions: React.FC = () => {
+    const { colors } = useTheme();
+    return (
+        <View style={styles.emptyContainer}>
+            <Ionicons name="receipt-outline" size={48} color={colors.textSecondary} />
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                No transactions to show
+            </Text>
+        </View>
+    );
+};
+
 const TransactionsList: React.FC<TransactionsListProps> = ({
     transactions,
     onSeeAllPress,
@@ -60,22 +72,38 @@ const TransactionsList: React.FC<TransactionsListProps> = ({
                     <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
                 </TouchableOpacity>
             </View>
-            <FlatList
-                data={transactions}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                    <TransactionItem
-                        transaction={item}
-                        onPress={() => onTransactionPress(item)}
-                    />
-                )}
-                ItemSeparatorComponent={() => <View style={styles.separator} />}
-            />
+            {transactions.length > 0 ? (
+                <FlatList
+                    data={transactions}
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => (
+                        <TransactionItem
+                            transaction={item}
+                            onPress={() => onTransactionPress(item)}
+                        />
+                    )}
+                    ItemSeparatorComponent={() => <View style={styles.separator} />}
+                />
+            ) : (
+                <EmptyTransactions />
+            )}
         </View>
     );
 };
 
 const styles = StyleSheet.create({
+    emptyContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 24,
+        backgroundColor: 'transparent',
+    },
+    emptyText: {
+        marginTop: 12,
+        fontSize: 16,
+        textAlign: 'center',
+        opacity: 0.7,
+    },
     container: {
         margin: 16,
     },
