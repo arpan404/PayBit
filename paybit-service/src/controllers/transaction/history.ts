@@ -22,6 +22,7 @@ import { TRANSACTION_TYPES } from "../../utils/constants";
  * @access Private (requires auth token)
  */
 export const getTransactionHistory = async (
+  
   req: Request,
   res: Response,
 ): Promise<void> => {

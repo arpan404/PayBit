@@ -13,6 +13,9 @@ export const autoLogin = async (req: Request, res: Response): Promise<void> => {
         message: "User not authenticated",
       });
       return;
+
+
+    
     }
 
     // Retrieve user details

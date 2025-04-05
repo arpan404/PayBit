@@ -22,6 +22,7 @@ export const fetchCampaign = async (
   res: Response,
 ): Promise<void> => {
   try {
+    
     // Check if a specific campaign ID is requested
     const { id } = req.params;
 

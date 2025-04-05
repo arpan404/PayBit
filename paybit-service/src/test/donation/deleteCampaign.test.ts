@@ -23,6 +23,7 @@ const otherUser = {
   uid: uuidv4(),
 };
 
+
 // Test campaign data
 const testCampaign = {
   name: "Test Campaign for Deletion",

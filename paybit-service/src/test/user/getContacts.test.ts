@@ -198,6 +198,7 @@ describe("getContacts Controller", () => {
       .get("/api/user/contacts")
       .set("x-auth-token", "invalid-token")
       .expect(401);
+      
 
     expect(response.body.success).toBe(false);
     expect(response.body.message).toBe("Invalid authentication token");

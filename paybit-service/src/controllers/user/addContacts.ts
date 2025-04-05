@@ -22,6 +22,7 @@ export const addContact = async (
         success: false,
         code: "add-contact-e1",
         message: "User not authenticated",
+        
       });
       return;
     }

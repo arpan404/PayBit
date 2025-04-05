@@ -21,6 +21,7 @@ export const validateEmail = (email: string): boolean => {
  */
 export const validatePassword = (password: string): boolean => {
   // At least 8 characters
+  
   if (password.length < 8) return false;
 
   // Check for uppercase, lowercase, number, and special character

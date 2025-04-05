@@ -89,6 +89,7 @@ describe("User Controller - Add Contact", () => {
     // Execute
     await addContact(req as Request, res as Response);
 
+    
     // Verify
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({

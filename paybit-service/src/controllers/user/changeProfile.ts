@@ -21,6 +21,7 @@ export const changeProfile = async (
     const userId = req.user.id;
     const { fullname } = req.body;
 
+    
     // Find user
     const user = await User.findById(userId);
     if (!user) {

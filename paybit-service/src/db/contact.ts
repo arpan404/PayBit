@@ -20,6 +20,7 @@ const ContactSchema: Schema = new Schema(
       type: String,
       required: true,
     },
+    
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt fields

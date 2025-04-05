@@ -10,6 +10,7 @@ import { addContact } from "../controllers/user/addContacts";
 const router = Router();
 
 // User profile routes
+
 router.put(
   "/profile",
   authMiddleware,

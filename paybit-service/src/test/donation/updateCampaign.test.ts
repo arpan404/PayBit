@@ -20,6 +20,7 @@ const creator = {
   fullname: "Update Test Creator",
   email: "update.creator@example.com",
   password: "Creator@123",
+  
   uid: uuidv4(),
 };
 

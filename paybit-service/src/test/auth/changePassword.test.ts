@@ -18,6 +18,7 @@ const testUser = {
 let authToken: string;
 let userId: string;
 
+
 beforeAll(async () => {
   await User.deleteOne({ email: testUser.email });
   const salt = await bcrypt.genSalt(10);

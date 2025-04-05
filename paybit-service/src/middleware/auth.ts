@@ -22,6 +22,7 @@ export const authMiddleware = async (
       code: "auth-e1",
       message: "No authentication token, access denied",
     });
+    
     return;
   }
 

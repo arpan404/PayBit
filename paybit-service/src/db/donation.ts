@@ -21,6 +21,7 @@ const DonationCampaignSchema = new Schema<IDonationCampaign>(
       type: String,
       required: true,
     },
+    
     creatorUid: {
       type: String,
       required: true,
