@@ -140,15 +140,13 @@ export const donate = async (req: Request, res: Response): Promise<void> => {
     // Determine if campaign is now complete
     const isComplete = newCollectedAmount >= campaign.goalAmount;
     await Transaction.create({
+        senderId: donorUser._id,
+        receiverId: creatorUser._id,
         amount: donationAmount,
-        senderName: donorUser.fullname,
-        receiverName: campaign.name,
-        fromUserId: donorUser._id,
-        toUserId: creatorUser._id,
         type: "donation",
         campaignId: campaign._id,
         campaignName: campaign.name,
-        status: "completed",
+        status: isComplete ? "completed" : "pending",
         createdAt: new Date(),
         updatedAt: new Date(),
       });
