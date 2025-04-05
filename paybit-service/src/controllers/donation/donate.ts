@@ -106,7 +106,7 @@ export const donate = async (req: Request, res: Response): Promise<void> => {
 
         // Process the donation by transferring funds
         try {
-            await transferFunds(String(donorUser._id), String(creatorUser._id), donationAmount);
+            await transferFunds(String(donorUser._id), String(creatorUser._id), donationAmount, campaign.name, "donation");
         } catch (transferError: any) {
             res.status(400).json({
                 success: false,

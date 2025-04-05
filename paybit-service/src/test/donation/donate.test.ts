@@ -147,7 +147,9 @@ describe('Donation - Donate Controller', () => {
         expect(transferService.default).toHaveBeenCalledWith(
             donorId,
             creatorId,
-            donationAmount
+            donationAmount,
+            "Test Donation Campaign",
+            "donation"
         );
 
         // Verify the campaign was actually updated in the database
