@@ -26,13 +26,13 @@ export const Colors = {
 };
 
 export const colors = {
-  primary: '#F7931A',
-  secondary: '#E2761B',
-  background: '#121212',
-  card: '#1E1E1E',
-  text: '#FFFFFF',
-  textSecondary: '#AAAAAA',
-  border: 'rgba(255, 255, 255, 0.1)',
-  error: '#FF3B30',
-  success: '#34C759',
+  primary: "#F7931A",
+  secondary: "#E2761B",
+  background: "#121212",
+  card: "#1E1E1E",
+  text: "#FFFFFF",
+  textSecondary: "#AAAAAA",
+  border: "rgba(255, 255, 255, 0.1)",
+  error: "#FF3B30",
+  success: "#34C759",
 };
