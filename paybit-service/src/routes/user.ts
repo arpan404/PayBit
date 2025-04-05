@@ -1,31 +1,10 @@
-import { Router } from "express";
-import authMiddleware from "../middleware/auth";
-import upload from "../middleware/upload";
-import changeProfile from "../controllers/user/changeProfile";
-import sendRequest from "../controllers/user/sendRequest";
-import fetchRequests from "../controllers/user/fetchRequest";
-import { getContacts } from "../controllers/user/getContacts";
-import { addContact } from "../controllers/user/addContacts";
+import express from "express";
+import getContacts from "../../controllers/user/getContacts";
+import authMiddleware from "../../middleware/auth";
 
-const router = Router();
+const router = express.Router();
 
-// User profile routes
-
-router.put(
-  "/profile",
-  authMiddleware,
-  upload.single("profileImage"),
-  changeProfile,
-);
-
-// Contact management routes
-router.get("/contacts", authMiddleware, async (req, res) => {
-  await getContacts(req, res);
-});
-router.post("/contacts", authMiddleware, addContact);
-
-// Request management routes
-router.post("/request", authMiddleware, sendRequest);
-router.get("/requests", authMiddleware, fetchRequests);
+// GET /api/user/contacts - Get all contacts for authenticated user
+router.get("/contacts", authMiddleware, getContacts);
 
 export default router;
