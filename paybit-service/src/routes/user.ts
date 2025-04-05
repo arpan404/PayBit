@@ -14,7 +14,7 @@ router.put(
   "/profile",
   authMiddleware,
   upload.single("profileImage"),
-  changeProfile
+  changeProfile,
 );
 
 // Contact management routes

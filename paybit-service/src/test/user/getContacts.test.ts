@@ -11,7 +11,7 @@ const testUser = {
   fullname: "Test User",
   email: "test.user@example.com",
   password: "Password123!",
-  uid: "test-user-uid"
+  uid: "test-user-uid",
 };
 
 const contactUsers = [
@@ -20,15 +20,15 @@ const contactUsers = [
     email: "contact.one@example.com",
     password: "Contact123!",
     uid: "contact-uid-1",
-    profileImage: "https://example.com/profile1.jpg"
+    profileImage: "https://example.com/profile1.jpg",
   },
   {
     fullname: "Contact Two",
     email: "contact.two@example.com",
     password: "Contact123!",
     uid: "contact-uid-2",
-    profileImage: ""
-  }
+    profileImage: "",
+  },
 ];
 
 // Global variables for use in tests
@@ -45,26 +45,29 @@ describe("getContacts Controller", () => {
     // Create test user
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(testUser.password, salt);
-    
+
     const createdUser = await User.create({
       fullname: testUser.fullname,
       email: testUser.email,
       password: hashedPassword,
       uid: testUser.uid,
-      profileImage: ""
+      profileImage: "",
     });
-    
+
     userId = String(createdUser._id);
 
     // Create contact users
     for (const contactUser of contactUsers) {
-      const hashedContactPassword = await bcrypt.hash(contactUser.password, salt);
+      const hashedContactPassword = await bcrypt.hash(
+        contactUser.password,
+        salt,
+      );
       await User.create({
         fullname: contactUser.fullname,
         email: contactUser.email,
         password: hashedContactPassword,
         uid: contactUser.uid,
-        profileImage: contactUser.profileImage
+        profileImage: contactUser.profileImage,
       });
     }
 
@@ -75,11 +78,11 @@ describe("getContacts Controller", () => {
         user: {
           id: userId,
           uid: testUser.uid,
-          email: testUser.email
-        }
+          email: testUser.email,
+        },
       },
       jwtSecret,
-      { expiresIn: "1h" }
+      { expiresIn: "1h" },
     );
   });
 
@@ -112,12 +115,12 @@ describe("getContacts Controller", () => {
     await Contact.create([
       {
         userUid: testUser.uid,
-        contactUid: contactUsers[0].uid
+        contactUid: contactUsers[0].uid,
       },
       {
         userUid: testUser.uid,
-        contactUid: contactUsers[1].uid
-      }
+        contactUid: contactUsers[1].uid,
+      },
     ]);
 
     const response = await request(app)
@@ -144,14 +147,14 @@ describe("getContacts Controller", () => {
 
     // Verify that user data is correctly associated with contacts
     const contactOne = response.body.data.contacts.find(
-      (c: any) => c.contactUid === contactUsers[0].uid
+      (c: any) => c.contactUid === contactUsers[0].uid,
     );
     expect(contactOne.user.fullname).toBe(contactUsers[0].fullname);
     expect(contactOne.user.email).toBe(contactUsers[0].email);
     expect(contactOne.user.profileImage).toBe(contactUsers[0].profileImage);
 
     const contactTwo = response.body.data.contacts.find(
-      (c: any) => c.contactUid === contactUsers[1].uid
+      (c: any) => c.contactUid === contactUsers[1].uid,
     );
     expect(contactTwo.user.fullname).toBe(contactUsers[1].fullname);
     expect(contactTwo.user.email).toBe(contactUsers[1].email);
@@ -163,7 +166,7 @@ describe("getContacts Controller", () => {
     const nonExistentUid = "non-existent-uid";
     await Contact.create({
       userUid: testUser.uid,
-      contactUid: nonExistentUid
+      contactUid: nonExistentUid,
     });
 
     const response = await request(app)
@@ -184,9 +187,7 @@ describe("getContacts Controller", () => {
   });
 
   it("should reject unauthorized requests", async () => {
-    const response = await request(app)
-      .get("/api/user/contacts")
-      .expect(401);
+    const response = await request(app).get("/api/user/contacts").expect(401);
 
     expect(response.body.success).toBe(false);
     expect(response.body.message).toContain("access denied");
@@ -210,11 +211,11 @@ describe("getContacts Controller", () => {
         user: {
           id: "invalid-id-format",
           uid: "invalid-uid",
-          email: "invalid@example.com"
-        }
+          email: "invalid@example.com",
+        },
       },
       jwtSecret,
-      { expiresIn: "1h" }
+      { expiresIn: "1h" },
     );
 
     const response = await request(app)
@@ -231,7 +232,7 @@ describe("getContacts Controller", () => {
     // Create initial contact
     await Contact.create({
       userUid: testUser.uid,
-      contactUid: contactUsers[0].uid
+      contactUid: contactUsers[0].uid,
     });
 
     // Verify first contact
@@ -241,11 +242,11 @@ describe("getContacts Controller", () => {
       .expect(200);
 
     expect(firstResponse.body.data.contacts).toHaveLength(1);
-    
+
     // Add second contact
     await Contact.create({
       userUid: testUser.uid,
-      contactUid: contactUsers[1].uid
+      contactUid: contactUsers[1].uid,
     });
 
     // Verify both contacts

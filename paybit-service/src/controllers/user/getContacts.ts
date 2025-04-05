@@ -44,7 +44,7 @@ export const getContacts = async (req: Request, res: Response) => {
     // Get user details for all contacts in a single query
     const contactUsers = await User.find(
       { uid: { $in: contactUids } },
-      { password: 0 } // Exclude password field
+      { password: 0 }, // Exclude password field
     );
 
     // Create a map of user info by UID for quick lookup

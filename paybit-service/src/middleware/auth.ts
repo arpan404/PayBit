@@ -9,7 +9,7 @@ declare global {
   }
 }
 
-export const authMiddleware = async(
+export const authMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction,

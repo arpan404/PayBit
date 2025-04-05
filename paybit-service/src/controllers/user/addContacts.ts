@@ -6,12 +6,15 @@ import mongoose from "mongoose";
 /**
  * Add Contact Controller
  * Adds a new contact to the authenticated user's contact list
- * 
+ *
  * @route POST /api/user/contacts
  * @body contactUid - UID of the user to add as contact
  * @access Private (requires auth token)
  */
-export const addContact = async (req: Request, res: Response): Promise<void> => {
+export const addContact = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     // Ensure user is authenticated
     if (!req.user || !req.user.id) {
