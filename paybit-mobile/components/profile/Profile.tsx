@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,6 +10,8 @@ import { useTheme } from '../../context/ThemeContext';
 import { useStore } from '@/services/store';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
+import { updateProfileImage } from '../../services/api/user';
+import { apiEndpoint, getImageUrl } from '@/constants/api';
 
 interface ProfileOptionProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -29,6 +31,14 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors, isDarkMode } = useTheme();
+  const [isUploading, setIsUploading] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (userData.userProfileImage) {
+      setImageUrl(getImageUrl(userData.userProfileImage) || null);
+    }
+  }, [userData.userProfileImage]);
 
   const handleBackPress = () => {
     if (onClose) {
@@ -52,12 +62,28 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
       });
 
       if (!result.canceled && result.assets[0].uri) {
-        // Handle the selected image
-        // Add your image upload logic here
-        console.log('Selected image:', result.assets[0].uri);
+        setIsUploading(true);
+        try {
+          // Upload image to backend
+          const response = await updateProfileImage(result.assets[0].uri);
+
+          if (response.success) {
+            // Successfully updated - Store already updated by the API function
+            Alert.alert('Success', 'Profile image updated successfully');
+          } else {
+            Alert.alert('Error', response.error || 'Failed to update profile image');
+          }
+        } catch (error) {
+          console.error('Image upload error:', error);
+          Alert.alert('Error', 'Failed to upload image to server');
+        } finally {
+          setIsUploading(false);
+        }
       }
     } catch (error) {
+      console.error('Camera error:', error);
       Alert.alert('Error', 'Failed to take photo');
+      setIsUploading(false);
     }
   };
 
@@ -77,12 +103,28 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
       });
 
       if (!result.canceled && result.assets[0].uri) {
-        // Handle the selected image
-        // Add your image upload logic here
-        console.log('Selected image:', result.assets[0].uri);
+        setIsUploading(true);
+        try {
+          // Upload image to backend
+          const response = await updateProfileImage(result.assets[0].uri);
+
+          if (response.success) {
+            // Successfully updated - Store already updated by the API function
+            Alert.alert('Success', 'Profile image updated successfully');
+          } else {
+            Alert.alert('Error', response.error || 'Failed to update profile image');
+          }
+        } catch (error) {
+          console.error('Gallery error:', error);
+          Alert.alert('Error', 'Failed to upload image to server');
+        } finally {
+          setIsUploading(false);
+        }
       }
     } catch (error) {
+      console.error('Gallery error:', error);
       Alert.alert('Error', 'Failed to select photo');
+      setIsUploading(false);
     }
   };
 
@@ -134,7 +176,6 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
       ]
     );
   };
-
   const ProfileOption = ({
     icon,
     title,
@@ -179,10 +220,15 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
         >
           <View style={styles.profileSection}>
             <View style={styles.avatarSection}>
-              {userData.userProfileImage ? (
+              {isUploading ? (
+                <View style={[styles.profileImage, { justifyContent: 'center', alignItems: 'center' }]}>
+                  <ActivityIndicator size="large" color={colors.primary} />
+                </View>
+              ) : userData.userProfileImage ? (
                 <Image
-                  source={{ uri: userData.userProfileImage }}
+                  source={{ uri: imageUrl || undefined }}
                   style={styles.profileImage}
+                  contentFit="cover"
                 />
               ) : (
                 <View style={styles.profileImage}>
@@ -191,7 +237,11 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
                   </Text>
                 </View>
               )}
-              <TouchableOpacity style={[styles.editButton, { backgroundColor: colors.primary }]} onPress={handleChangePhoto}>
+              <TouchableOpacity
+                style={[styles.editButton, { backgroundColor: colors.primary }]}
+                onPress={handleChangePhoto}
+                disabled={isUploading}
+              >
                 <Ionicons name="camera" size={18} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
