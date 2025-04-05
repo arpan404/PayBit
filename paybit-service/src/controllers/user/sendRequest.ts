@@ -4,15 +4,13 @@ import User from '../../db/user';
 import Request from '../../db/requests';
 
 /**
- * Send money request controller
- * Creates a new request for money from one user to another
- * 
- * @route POST /api/user/request
- * @access Private
+ * Send money request
+ * POST /api/user/request
+ * Private
  */
 export const sendRequest = async (req: ExpressRequest, res: Response): Promise<void> => {
     try {
-        // Ensure user is authenticated
+        // Check auth
         if (!req.user || !req.user.id) {
             res.status(401).json({
                 success: false,
@@ -25,7 +23,7 @@ export const sendRequest = async (req: ExpressRequest, res: Response): Promise<v
         const requesterId = req.user.id;
         const { email, amount } = req.body;
 
-        // Validate required fields
+        // Validate input
         if (!email) {
             res.status(400).json({
                 success: false,
@@ -44,7 +42,7 @@ export const sendRequest = async (req: ExpressRequest, res: Response): Promise<v
             return;
         }
 
-        // Find the recipient user by email
+        // Find recipient
         const recipient = await User.findOne({ email });
         if (!recipient) {
             res.status(404).json({
@@ -55,7 +53,7 @@ export const sendRequest = async (req: ExpressRequest, res: Response): Promise<v
             return;
         }
 
-        // Prevent sending request to self
+        // Prevent self request
         if ((recipient._id as mongoose.Types.ObjectId).toString() === requesterId) {
             res.status(400).json({
                 success: false,
@@ -65,7 +63,7 @@ export const sendRequest = async (req: ExpressRequest, res: Response): Promise<v
             return;
         }
 
-        // Check if there's already a pending request to this recipient
+        // Check if pending request exists
         const existingRequest = await Request.findOne({
             requesterId: new mongoose.Types.ObjectId(requesterId),
             senderId: recipient._id,
@@ -76,12 +74,12 @@ export const sendRequest = async (req: ExpressRequest, res: Response): Promise<v
             res.status(409).json({
                 success: false,
                 code: 'request-e6',
-                message: 'You already have a pending request to this user',
+                message: 'Pending request already exists',
             });
             return;
         }
 
-        // Create the new request
+        // Create request
         const newRequest = new Request({
             requesterId: new mongoose.Types.ObjectId(requesterId),
             amount: parseFloat(amount),
@@ -91,7 +89,7 @@ export const sendRequest = async (req: ExpressRequest, res: Response): Promise<v
 
         await newRequest.save();
 
-        // Populate requester and sender details for the response
+        // Populate details
         const populatedRequest = await Request.findById(newRequest._id)
             .populate('requesterId', 'fullname email uid profileImage')
             .populate('senderId', 'fullname email uid profileImage');

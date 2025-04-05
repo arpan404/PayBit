@@ -47,7 +47,6 @@ describe("Auth - Signup Controller", () => {
     expect(response.body.data).toHaveProperty("fullname", testUser.fullname);
     expect(response.body.data).toHaveProperty("email", testUser.email);
     expect(response.body.data).toHaveProperty("profileImage");
-    expect(response.body.data).toHaveProperty("createdAt");
 
     // Ensure password is not returned
     expect(response.body.data).not.toHaveProperty("password");

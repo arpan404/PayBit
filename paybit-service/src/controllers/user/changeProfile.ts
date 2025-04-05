@@ -3,16 +3,10 @@ import path from 'path';
 import fs from 'fs';
 import User from '../../db/user';
 
-/**
- * Change user profile controller
- * Updates user profile details including profile image
- * 
- * @route PUT /api/user/profile
- * @access Private
- */
+// PUT /api/user/profile - Update profile details
 export const changeProfile = async (req: Request, res: Response): Promise<void> => {
     try {
-        // Check if user is authenticated via middleware (req.user should be set)
+        // Check authentication
         if (!req.user || !req.user.id) {
             res.status(401).json({
                 success: false,
@@ -25,7 +19,7 @@ export const changeProfile = async (req: Request, res: Response): Promise<void> 
         const userId = req.user.id;
         const { fullname } = req.body;
 
-        // Find user in database
+        // Find user
         const user = await User.findById(userId);
         if (!user) {
             res.status(404).json({
@@ -36,29 +30,28 @@ export const changeProfile = async (req: Request, res: Response): Promise<void> 
             return;
         }
 
-        // Update user details if provided
+        // Update fullname if provided
         if (fullname) {
             user.fullname = fullname;
         }
 
         // Handle profile image upload
         if (req.file) {
-            // If user already has a profile image, delete the old one
+            // Delete old image if exists and not a URL
             if (user.profileImage && !user.profileImage.startsWith('http')) {
                 const oldImagePath = path.join(__dirname, '../../../public', user.profileImage);
                 if (fs.existsSync(oldImagePath)) {
                     fs.unlinkSync(oldImagePath);
                 }
             }
-
-            // Set the new profile image path
+            // Set new image path
             user.profileImage = `/uploads/${req.file.filename}`;
         }
 
-        // Save the updated user
+        // Save updated user
         await user.save();
 
-        // Return success response with updated user data
+        // Send success response
         res.status(200).json({
             success: true,
             message: 'Profile updated successfully',

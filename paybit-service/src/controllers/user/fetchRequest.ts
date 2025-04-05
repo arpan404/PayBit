@@ -6,11 +6,10 @@ const fetchRequest = async (req: ExpressRequest, res: Response): Promise<Respons
         const type = req.query.type;
         if (!type || (type !== 'sent' && type !== 'received')) {
             return res.status(400).json({
-                message: "Invalid query param 'type'. Allowed values: sent, received."
+                message: "Invalid query param 'type'. Allowed: sent, received."
             });
         }
-
-        // Assumes that req.user is populated with the authenticated user's info.
+        // auth
         const userId = req.user.id;
         let requests;
 
