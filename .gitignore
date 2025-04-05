@@ -90,3 +90,6 @@ lerna-debug.log*
 ios/build/
 android/app/build/
 android/build/
+
+/lnd
+package-lock.json
