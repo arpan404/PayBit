@@ -54,12 +54,12 @@ export const donate = async (req: Request, res: Response): Promise<void> => {
     const donationAmount = Number(amount);
 
     // Add additional validation for donation amounts if needed
-    if (donationAmount < 1) {
+    if (donationAmount <= 0) {
       // Minimum donation amount
       res.status(400).json({
         success: false,
         code: "donate-e4",
-        message: "Minimum donation amount is 1",
+        message: "Minimum donation amount is 0",
       });
       return;
     }
