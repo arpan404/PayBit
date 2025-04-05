@@ -9,84 +9,69 @@ export const createCampaign = async (
 ): Promise<void> => {
   try {
     if (!req.user || !req.user.id) {
-      res
-        .status(401)
-        .json({
-          success: false,
-          code: "donation-e1",
-          message: "User not authenticated",
-        });
+      res.status(401).json({
+        success: false,
+        code: "donation-e1",
+        message: "User not authenticated",
+      });
       return;
     }
 
     const user = await User.findById(req.user.id);
     if (!user) {
-      res
-        .status(404)
-        .json({
-          success: false,
-          code: "donation-e2",
-          message: "User not found",
-        });
+      res.status(404).json({
+        success: false,
+        code: "donation-e2",
+        message: "User not found",
+      });
       return;
     }
 
     const { name, description, goalAmount, image } = req.body;
     if (!name || !description) {
-      res
-        .status(400)
-        .json({
-          success: false,
-          code: "donation-e3",
-          message: "Campaign name and description are required",
-        });
+      res.status(400).json({
+        success: false,
+        code: "donation-e3",
+        message: "Campaign name and description are required",
+      });
       return;
     }
 
     if (name.length < 5 || name.length > 100) {
-      res
-        .status(400)
-        .json({
-          success: false,
-          code: "donation-e4",
-          message: "Campaign name must be between 5 and 100 characters",
-        });
+      res.status(400).json({
+        success: false,
+        code: "donation-e4",
+        message: "Campaign name must be between 5 and 100 characters",
+      });
       return;
     }
 
     if (description.length < 20 || description.length > 2000) {
-      res
-        .status(400)
-        .json({
-          success: false,
-          code: "donation-e5",
-          message:
-            "Campaign description must be between 20 and 2000 characters",
-        });
+      res.status(400).json({
+        success: false,
+        code: "donation-e5",
+        message: "Campaign description must be between 20 and 2000 characters",
+      });
       return;
     }
 
     if (!goalAmount || isNaN(goalAmount) || goalAmount <= 0) {
-      res
-        .status(400)
-        .json({
-          success: false,
-          code: "donation-e6",
-          message: "Valid goal amount greater than 0 is required",
-        });
+      res.status(400).json({
+        success: false,
+        code: "donation-e6",
+        message: "Valid goal amount greater than 0 is required",
+      });
       return;
     }
 
     if (image && typeof image === "string") {
       const validUrlPattern = /^(https?:\/\/)/i;
       if (!validUrlPattern.test(image)) {
-        res
-          .status(400)
-          .json({
-            success: false,
-            code: "donation-e7",
-            message: "Image must be a valid URL",
-          });
+        res.status(400).json({
+          success: false,
+          code: "donation-e7",
+          message: "Image must be a valid URL",
+        });
         return;
       }
     }
