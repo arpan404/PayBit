@@ -317,10 +317,10 @@ const SignupScreen = () => {
             return (
                 <TouchableOpacity onPress={validateStep1}>
                     <LinearGradient
-                        colors={['#F7931A', '#E2761B']}
+                        colors={['#F7931A', '#000000']}
                         style={styles.actionButton}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
+                        start={{ x: 1, y: 0 }}
+                        end={{ x: 0, y: 1 }}
                     >
                         <Text style={styles.actionButtonText}>Next</Text>
                     </LinearGradient>
@@ -336,10 +336,10 @@ const SignupScreen = () => {
 
                     <TouchableOpacity style={styles.createAccountButton} onPress={handleCreateAccount}>
                         <LinearGradient
-                            colors={['#F7931A', '#E2761B']}
+                            colors={['#F7931A', '#000000']}
                             style={styles.actionButton}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
+                            start={{ x: 1, y: 0 }}
+                            end={{ x: 0, y: 1 }}
                         >
                             <Text style={styles.actionButtonText}>Create Account</Text>
                         </LinearGradient>

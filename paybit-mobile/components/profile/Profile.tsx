@@ -43,18 +43,22 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
     };
 
     const handleChangePassword = () => {
+        onClose?.();
         router.push('/change-password');
     };
 
     const handleNotificationSettings = () => {
+        onClose?.();
         router.push('/notifications');
     };
 
     const handleSecuritySettings = () => {
+        onClose?.();
         router.push('/security');
     };
 
     const handleHelpSupport = () => {
+        onClose?.();
         router.push('/help-support');
     };
 
@@ -280,7 +284,8 @@ const styles = StyleSheet.create({
         marginHorizontal: 16,
         marginBottom: 16,
         overflow: 'hidden',
-        width: '100%',
+        width: 'auto',
+        alignSelf: 'stretch',
     },
     sectionTitle: {
         fontSize: 18,
@@ -293,9 +298,14 @@ const styles = StyleSheet.create({
     option: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 16,
+        paddingVertical: 12,
         paddingHorizontal: 16,
         width: '100%',
+    },
+    optionContent: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     iconContainer: {
         width: 44,
@@ -303,7 +313,7 @@ const styles = StyleSheet.create({
         borderRadius: 22,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 16,
+        marginRight: 12,
     },
     optionTextContainer: {
         flex: 1,
@@ -320,7 +330,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
         color: '#FFFFFF',
-        marginBottom: 4,
+        marginBottom: 2,
     },
     optionSubtitle: {
         fontSize: 14,

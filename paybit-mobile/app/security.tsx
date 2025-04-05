@@ -161,7 +161,8 @@ const styles = StyleSheet.create({
         marginHorizontal: 16,
         marginBottom: 16,
         overflow: 'hidden',
-        width: '100%',
+        width: 'auto',
+        alignSelf: 'stretch',
     },
     sectionTitle: {
         fontSize: 18,
@@ -175,7 +176,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingVertical: 16,
+        paddingVertical: 12,
         paddingHorizontal: 16,
         borderBottomWidth: 1,
         borderBottomColor: 'rgba(255, 255, 255, 0.1)',
@@ -192,20 +193,22 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(247, 147, 26, 0.1)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 16,
+        marginRight: 12,
     },
     textContainer: {
         flex: 1,
+        marginRight: 8,
     },
     optionTitle: {
         fontSize: 16,
         fontWeight: '600',
         color: '#FFFFFF',
-        marginBottom: 4,
+        marginBottom: 2,
     },
     optionSubtitle: {
         fontSize: 14,
         color: '#AAAAAA',
+        lineHeight: 18,
     },
 });
 

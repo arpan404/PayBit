@@ -154,9 +154,14 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
       </ScrollView>
 
       <TouchableOpacity style={styles.qrButton} onPress={handleQRPress}>
-        <View style={styles.qrButtonGradient}>
+        <LinearGradient
+          colors={['#F7931A', '#000000']}
+          style={styles.qrButtonGradient}
+          start={{ x: 1, y: 0 }}
+          end={{ x: 0, y: 1 }}
+        >
           <Ionicons name="qr-code" size={20} color="#FFFFFF" />
-        </View>
+        </LinearGradient>
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -188,14 +193,13 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 4.65,
-    backgroundColor: '#F7931A',
+    overflow: 'hidden',
   },
   qrButtonGradient: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 15,
-    backgroundColor: '#F7931A',
   },
 });
 

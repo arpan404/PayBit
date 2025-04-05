@@ -30,10 +30,10 @@ const BalanceCard = ({ balance, fiatValue, lastUpdated }: BalanceCardProps) => {
         <TouchableOpacity onPress={handleSlide} activeOpacity={0.9}>
             <BlurView intensity={20} style={styles.container}>
                 <LinearGradient
-                    colors={['#F7931A', '#E2761B']}
+                    colors={['#F7931A', '#000000']}
                     style={styles.gradient}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
+                    start={{ x: 1, y: 0 }}
+                    end={{ x: 0, y: 1 }}
                 >
                     <Animated.View
                         style={[
@@ -161,12 +161,14 @@ const styles = StyleSheet.create({
     rateContainer: {
         width: '100%',
         marginTop: 12,
+        paddingRight: 8,
     },
     rateRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 16,
+        paddingHorizontal: 8,
     },
     rateLabel: {
         fontSize: 16,

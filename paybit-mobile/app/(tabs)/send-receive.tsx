@@ -129,16 +129,11 @@ const SendReceiveScreen = () => {
                         style={styles.actionButton}
                         onPress={activeTab === 'send' ? handleSend : handleRequest}
                     >
-                        <LinearGradient
-                            colors={['#FF9500', '#F7931A']}
-                            style={styles.gradientButton}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                        >
+                        <View style={styles.gradientButton}>
                             <Text style={styles.actionButtonText}>
                                 {activeTab === 'send' ? 'Send Bitcoin' : 'Request Bitcoin'}
                             </Text>
-                        </LinearGradient>
+                        </View>
                     </TouchableOpacity>
                 </BlurView>
 
@@ -275,13 +270,12 @@ const styles = StyleSheet.create({
     },
     actionButton: {
         backgroundColor: '#F7931A',
-        paddingVertical: 16,
         borderRadius: 12,
-        alignItems: 'center',
-        marginTop: 10,
+        overflow: 'hidden',
     },
     gradientButton: {
-        flex: 1,
+        paddingVertical: 16,
+        paddingHorizontal: 24,
         justifyContent: 'center',
         alignItems: 'center',
     },

@@ -138,10 +138,10 @@ const LoginScreen = () => {
 
                         <TouchableOpacity onPress={handleSignIn}>
                             <LinearGradient
-                                colors={['#F7931A', '#E2761B']}
+                                colors={['#F7931A', '#000000']}
                                 style={styles.loginButton}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 1 }}
+                                start={{ x: 1, y: 0 }}
+                                end={{ x: 0, y: 1 }}
                             >
                                 <Text style={styles.loginButtonText}>Sign In</Text>
                             </LinearGradient>

@@ -20,10 +20,10 @@ const Header = ({ userName, userImage, onProfilePress }: HeaderProps) => {
                         <Image source={{ uri: userImage }} style={styles.avatar} />
                     ) : (
                         <LinearGradient
-                            colors={['#F7931A', '#E2761B']}
+                            colors={['#F7931A', '#000000']}
                             style={styles.avatarPlaceholder}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
+                            start={{ x: 1, y: 0 }}
+                            end={{ x: 0, y: 1 }}
                         >
                             <Text style={styles.avatarText}>{firstName.charAt(0)}</Text>
                         </LinearGradient>

@@ -19,10 +19,10 @@ interface QuickActionsProps {
 const Action = ({ icon, label, onPress }: ActionProps) => (
     <TouchableOpacity style={styles.actionButton} onPress={onPress}>
         <LinearGradient
-            colors={['#F7931A', '#E2761B']}
+            colors={['#F7931A', '#000000']}
             style={styles.actionIcon}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+            start={{ x: 1, y: 0 }}
+            end={{ x: 0, y: 1 }}
         >
 
             <Ionicons name={icon as any} size={24} color="#fff" />

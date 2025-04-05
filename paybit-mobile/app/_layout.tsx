@@ -35,7 +35,6 @@ export default function RootLayout() {
         <Stack
           screenOptions={{
             headerShown: false,
-            animation: 'slide_from_right',
           }}
         >
           <Stack.Screen
@@ -54,70 +53,43 @@ export default function RootLayout() {
             name="profile"
             options={{
               headerShown: true,
-              headerBackTitle: 'Back',
               headerStyle: {
                 backgroundColor: '#121212',
               },
               headerTintColor: '#FFFFFF',
+              headerTitle: 'Profile',
               headerTitleStyle: {
                 color: '#FFFFFF',
               },
+              presentation: 'modal'
             }}
           />
           <Stack.Screen
             name="change-password"
             options={{
-              headerShown: true,
-              headerBackTitle: 'Back',
-              headerStyle: {
-                backgroundColor: '#121212',
-              },
-              headerTintColor: '#FFFFFF',
-              headerTitleStyle: {
-                color: '#FFFFFF',
-              },
+              headerShown: false,
+              presentation: 'card'
             }}
           />
           <Stack.Screen
             name="notifications"
             options={{
-              headerShown: true,
-              headerBackTitle: 'Back',
-              headerStyle: {
-                backgroundColor: '#121212',
-              },
-              headerTintColor: '#FFFFFF',
-              headerTitleStyle: {
-                color: '#FFFFFF',
-              },
+              headerShown: false,
+              presentation: 'card'
             }}
           />
           <Stack.Screen
             name="security"
             options={{
-              headerShown: true,
-              headerBackTitle: 'Back',
-              headerStyle: {
-                backgroundColor: '#121212',
-              },
-              headerTintColor: '#FFFFFF',
-              headerTitleStyle: {
-                color: '#FFFFFF',
-              },
+              headerShown: false,
+              presentation: 'card'
             }}
           />
           <Stack.Screen
             name="help-support"
             options={{
-              headerShown: true,
-              headerBackTitle: 'Back',
-              headerStyle: {
-                backgroundColor: '#121212',
-              },
-              headerTintColor: '#FFFFFF',
-              headerTitleStyle: {
-                color: '#FFFFFF',
-              },
+              headerShown: false,
+              presentation: 'card'
             }}
           />
           <Stack.Screen name="+not-found" />

@@ -34,19 +34,16 @@ const SettingsScreen = () => {
         // TODO: Implement about screen
     };
 
-    const handleDarkModeToggle = (value: boolean) => {
-        setDarkMode(value);
-        // TODO: Implement dark mode persistence
+    const handleDarkModeToggle = () => {
+        setDarkMode(prev => !prev);
     };
 
-    const handlePushNotificationsToggle = (value: boolean) => {
-        setPushNotifications(value);
-        // TODO: Implement push notifications persistence
+    const handlePushNotificationsToggle = () => {
+        setPushNotifications(prev => !prev);
     };
 
-    const handleBiometricAuthToggle = (value: boolean) => {
-        setBiometricAuth(value);
-        // TODO: Implement biometric auth persistence
+    const handleBiometricAuthToggle = () => {
+        setBiometricAuth(prev => !prev);
     };
 
     const SettingsOption = ({
@@ -68,7 +65,7 @@ const SettingsScreen = () => {
         tintColor?: string;
         showSwitch?: boolean;
         switchValue?: boolean;
-        onSwitchChange?: (value: boolean) => void;
+        onSwitchChange?: () => void;
     }) => (
         <View style={[styles.option, showBorder && styles.borderBottom]}>
             <TouchableOpacity
@@ -83,18 +80,18 @@ const SettingsScreen = () => {
                     {subtitle && <Text style={styles.optionSubtitle} numberOfLines={2}>{subtitle}</Text>}
                 </View>
             </TouchableOpacity>
-            <View style={styles.rightContainer}>
-                {showSwitch ? (
+            {showSwitch ? (
+                <TouchableOpacity onPress={onSwitchChange}>
                     <Switch
                         value={switchValue}
                         onValueChange={onSwitchChange}
                         trackColor={{ false: '#767577', true: '#F7931A' }}
                         thumbColor={switchValue ? '#FFFFFF' : '#f4f3f4'}
                     />
-                ) : (
-                    <Ionicons name="chevron-forward" size={20} color="#AAAAAA" />
-                )}
-            </View>
+                </TouchableOpacity>
+            ) : (
+                <Ionicons name="chevron-forward" size={20} color="#AAAAAA" />
+            )}
         </View>
     );
 
@@ -234,7 +231,7 @@ const styles = StyleSheet.create({
     option: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 16,
+        paddingVertical: 12,
         paddingHorizontal: 16,
         width: '100%',
     },
@@ -242,6 +239,7 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
+        marginRight: 8,
     },
     iconContainer: {
         width: 44,
@@ -249,24 +247,23 @@ const styles = StyleSheet.create({
         borderRadius: 22,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 16,
+        marginRight: 12,
     },
     optionTextContainer: {
         flex: 1,
         marginRight: 8,
     },
     rightContainer: {
-        width: 24,
-        height: 24,
+        width: 40,
+        height: 40,
         justifyContent: 'center',
         alignItems: 'center',
-        marginLeft: 'auto',
     },
     optionTitle: {
         fontSize: 16,
         fontWeight: '600',
         color: '#FFFFFF',
-        marginBottom: 4,
+        marginBottom: 2,
     },
     optionSubtitle: {
         fontSize: 14,
