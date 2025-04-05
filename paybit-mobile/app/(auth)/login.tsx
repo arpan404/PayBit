@@ -1,16 +1,17 @@
 import React, { useState } from "react";
 import {
-    View,
-    Text,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    TouchableWithoutFeedback,
-    Keyboard,
-    Alert,
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Alert,
+  ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -22,46 +23,46 @@ import axios from 'axios';
 import { apiEndpoint } from '@/constants/api';
 
 const LoginScreen = () => {
-    const insets = useSafeAreaInsets();
-    const router = useRouter();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
-    const [emailError, setEmailError] = useState('');
-    const [passwordError, setPasswordError] = useState('');
-    const setUser = useStore((state) => state.setUser);
-    const navigateToSignup = () => {
-        router.push('/(auth)/signup');
-    };
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const setUser = useStore((state) => state.setUser);
+  const navigateToSignup = () => {
+    router.push('/(auth)/signup');
+  };
 
-    const validateEmail = (email: string): boolean => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    };
-    const fetchSignIn = async () => {
-        try {
-            const response = await axios.post(`${apiEndpoint}/api/auth/login`, { email, password });
-            let data = response.data.data
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+  const fetchSignIn = async () => {
+    try {
+      const response = await axios.post(`${apiEndpoint}/api/auth/login`, { email, password });
+      let data = response.data.data
 
-            setUser({
-                userID: data.user.uid,
-                userUID: data.user.id,
-                userFullName: data.user.fullname,
-                userProfileImage: data.user.profileImage,
-                token: data.token,
-                balance: '0.00',
-                btcToUsd: 0,
-                btcToEur: 0
-            });
-            router.replace('/(tabs)');
+      setUser({
+        userID: data.user.uid,
+        userUID: data.user.id,
+        userFullName: data.user.fullname,
+        userProfileImage: data.user.profileImage,
+        token: data.token,
+        balance: '0.00',
+        btcToUsd: 0,
+        btcToEur: 0
+      });
+      router.replace('/(tabs)');
 
-        } catch (error) {
-            console.error('Login error:', error);
-            Alert.alert('Login Failed', 'An error occurred while logging in', [{ text: 'OK' }]);
-        }
-    };
-    const handleSignIn = () => {
-        let isValid = true;
+    } catch (error) {
+      console.error('Login error:', error);
+      Alert.alert('Login Failed', 'An error occurred while logging in', [{ text: 'OK' }]);
+    }
+  };
+  const handleSignIn = () => {
+    let isValid = true;
 
     // Reset errors
     setEmailError("");
@@ -82,136 +83,145 @@ const LoginScreen = () => {
       isValid = false;
     }
 
-        if (isValid) {
-            fetchSignIn()
-        }
-    };
+    if (isValid) {
+      fetchSignIn()
+    }
+  };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <StatusBar style="light" />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
-        <View style={[styles.container, { paddingTop: insets.top }]}>
-          <StatusBar style="light" />
-
-          {/* Logo and Header */}
-          <View style={styles.header}>
-            <Image
-              source={require("../../assets/images/icon.png")}
-              style={styles.logo}
-            />
-            <Text style={styles.appName}>PayBit</Text>
-            <Text style={styles.tagline}>Effortless Bitcoin Transactions</Text>
-          </View>
-
-          {/* Login Form */}
-          <View style={styles.formContainer}>
-            <Text style={styles.formTitle}>Welcome Back</Text>
-
-            <View style={styles.inputContainer}>
-              <Ionicons
-                name="mail-outline"
-                size={20}
-                color="#F7931A"
-                style={styles.inputIcon}
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView 
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Logo and Header */}
+            <View style={styles.header}>
+              <Image
+                source={require("../../assets/images/icon.png")}
+                style={styles.logo}
               />
-              <TextInput
-                style={styles.input}
-                placeholder="Email Address"
-                placeholderTextColor="#666666"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
+              <Text style={styles.appName}>PayBit</Text>
+              <Text style={styles.tagline}>Effortless Bitcoin Transactions</Text>
             </View>
-            {emailError ? (
-              <Text style={styles.errorText}>{emailError}</Text>
-            ) : null}
 
-            <View style={styles.inputContainer}>
-              <Ionicons
-                name="lock-closed-outline"
-                size={20}
-                color="#F7931A"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Password"
-                placeholderTextColor="#666666"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-              />
-              <TouchableOpacity
-                style={styles.eyeButton}
-                onPress={() => setShowPassword(!showPassword)}
-              >
+            {/* Login Form */}
+            <View style={styles.formContainer}>
+              <Text style={styles.formTitle}>Welcome Back</Text>
+
+              <View style={styles.inputContainer}>
                 <Ionicons
-                  name={showPassword ? "eye-off-outline" : "eye-outline"}
+                  name="mail-outline"
                   size={20}
                   color="#F7931A"
+                  style={styles.inputIcon}
                 />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Email Address"
+                  placeholderTextColor="#666666"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+              {emailError ? (
+                <Text style={styles.errorText}>{emailError}</Text>
+              ) : null}
+
+              <View style={styles.inputContainer}>
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={20}
+                  color="#F7931A"
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Password"
+                  placeholderTextColor="#666666"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                />
+                <TouchableOpacity
+                  style={styles.eyeButton}
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Ionicons
+                    name={showPassword ? "eye-off-outline" : "eye-outline"}
+                    size={20}
+                    color="#F7931A"
+                  />
+                </TouchableOpacity>
+              </View>
+              {passwordError ? (
+                <Text style={styles.errorText}>{passwordError}</Text>
+              ) : null}
+
+              <TouchableOpacity
+                style={styles.forgotPassword}
+                onPress={() => alert("Think Harder")}
+              >
+                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
               </TouchableOpacity>
+
+              <TouchableOpacity onPress={handleSignIn}>
+                <LinearGradient
+                  colors={['#F7931A', '#000000']}
+                  style={styles.loginButton}
+                  start={{ x: 1, y: 0 }}
+                  end={{ x: 0, y: 1 }}
+                >
+                  <Text style={styles.loginButtonText}>Sign In</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+
+              <View style={styles.divider}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>or continue with</Text>
+                <View style={styles.dividerLine} />
+              </View>
+
+              <View style={styles.socialContainer}>
+                <TouchableOpacity
+                  onPress={() => alert("Implemented soon!")}
+                  style={styles.socialButton}>
+                  <Ionicons name="logo-google" size={24} color="#FFFFFF" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => alert("Implemented soon!")} style={styles.socialButton}>
+                  <Ionicons name="logo-apple" size={24} color="#FFFFFF" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => alert("Implemented soon!")}
+                  style={styles.socialButton}>
+                  <Ionicons name="logo-facebook" size={24} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
+              
+              {/* Add padding at the bottom to ensure scrolling works well */}
+              <View style={{ height: 80 }} />
             </View>
-            {passwordError ? (
-              <Text style={styles.errorText}>{passwordError}</Text>
-            ) : null}
-
-                        <TouchableOpacity
-                            style={styles.forgotPassword}
-                            onPress={() => alert("Think Harder")}
-                        >
-                            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity onPress={handleSignIn}>
-                            <LinearGradient
-                                colors={['#F7931A', '#000000']}
-                                style={styles.loginButton}
-                                start={{ x: 1, y: 0 }}
-                                end={{ x: 0, y: 1 }}
-                            >
-                                <Text style={styles.loginButtonText}>Sign In</Text>
-                            </LinearGradient>
-                        </TouchableOpacity>
-
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or continue with</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-                        <View style={styles.socialContainer}>
-                            <TouchableOpacity
-                                onPress={() => alert("Implemented soon!")}
-                                style={styles.socialButton}>
-                                <Ionicons name="logo-google" size={24} color="#FFFFFF" />
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                onPress={() => alert("Implemented soon!")} style={styles.socialButton}>
-                                <Ionicons name="logo-apple" size={24} color="#FFFFFF" />
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                onPress={() => alert("Implemented soon!")}
-                                style={styles.socialButton}>
-                                <Ionicons name="logo-facebook" size={24} color="#FFFFFF" />
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={navigateToSignup}>
-              <Text style={styles.signupText}>Sign Up</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+          </ScrollView>
+        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
-    </TouchableWithoutFeedback>
+      
+      {/* Footer positioned absolutely at bottom */}
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>Don't have an account? </Text>
+        <TouchableOpacity onPress={navigateToSignup}>
+          <Text style={styles.signupText}>Sign Up</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 };
 
@@ -219,6 +229,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000000",
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
   },
   header: {
     alignItems: "center",
@@ -338,6 +352,8 @@ const styles = StyleSheet.create({
     bottom: 36,
     left: 0,
     right: 0,
+    backgroundColor: "#000000",
+    paddingVertical: 10,
   },
   footerText: {
     color: "#AAAAAA",

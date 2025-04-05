@@ -37,7 +37,6 @@ const HomeScreen = () => {
   const user = useStore((state) => state.user);
   const setUser = useStore((state) => state.setUser);
   const [lastUpdatedTime, setLastUpdatedTime] = useState<number>(0)
-  console.log(user)
   useEffect(() => {
     const fetchBitcoinPrice = async () => {
       try {
@@ -52,8 +51,9 @@ const HomeScreen = () => {
         console.error('Error fetching Bitcoin price:', error);
       }
     };
-
-    fetchBitcoinPrice();
+    if (!user.btcToUsd) {
+      fetchBitcoinPrice();
+    }
     const interval = setInterval(fetchBitcoinPrice, 60000); // Update every minute
 
     return () => clearInterval(interval);
@@ -66,7 +66,7 @@ const HomeScreen = () => {
       try {
         const response = await axios.get(`${apiEndpoint}/api/transaction/history`, {
           headers: {
-            Authorization: `Bearer ${user.token}`,
+            "x-auth-token": `${user.token}`,
           },
           params: {
             page: 1,
@@ -74,16 +74,20 @@ const HomeScreen = () => {
             sort: 'newest',
           },
         });
-
-        const transactions = response.data.data.map((tx: any) => ({
+        const transactions = response.data.data.transactions.map((tx: any) => ({
           id: tx.id,
+          direction: tx.direction === 'sent' ? 'sent' : 'received',
           type: tx.type,
-          amount: tx.amount.toString(),
-          fiatAmount: tx.fiatAmount.toString(),
+          amount: tx.amount,
+          fiatAmount: tx.fiatAmount,
           recipient: tx.counterpartyName,
-          timestamp: tx.date,
+          timestamp: new Date(tx.date).toLocaleDateString(),
+          status: tx.status,
+          description: tx.description,
+          reference: tx.reference,
+          campaignId: tx.campaignId,
         }));
-
+        console.log("Transactions", transactions)
         setRecentTransactions(transactions);
       } catch (error) {
         console.error('Error fetching recent transactions:', error);

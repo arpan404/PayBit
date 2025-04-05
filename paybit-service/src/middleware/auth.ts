@@ -1,53 +1,53 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-// Extend Express Request type to include user
 declare global {
   namespace Express {
     interface Request {
-      user: {
-        id: string;
-        uid: string;
-        email: string;
-      };
+      user?: any;
     }
   }
 }
 
-/**
- * Authentication middleware
- * Verifies the JWT token and adds the user to the request object
- */
-const authMiddleware = (
+export const authMiddleware = async (
   req: Request,
   res: Response,
-  next: NextFunction
-) => {
-  // Get token from header
+  next: NextFunction,
+): Promise<void> => {
   const token = req.header("x-auth-token");
 
-  // Check if no token
   if (!token) {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       code: "auth-e1",
       message: "No authentication token, access denied",
     });
+
+    return;
   }
 
   try {
-    // Verify token
-    const jwtSecret = process.env.JWT_SECRET || "dev-secret";
-    const decoded = jwt.verify(token, jwtSecret) as any;
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      console.error("JWT_SECRET is not defined");
+      res.status(500).json({
+        success: false,
+        code: "auth-e2",
+        message: "Server configuration error",
+      });
+      return;
+    }
 
-    // Add user from payload to request
-    req.user = decoded.user;
+    const decoded = jwt.verify(token, jwtSecret);
+
+    req.user = (decoded as any).user;
     next();
   } catch (error) {
-    return res.status(401).json({
+    console.error("Token verification error:", error);
+    res.status(401).json({
       success: false,
-      code: "auth-e2", 
-      message: "Token is not valid",
+      code: "auth-e3",
+      message: "Invalid authentication token",
     });
   }
 };
