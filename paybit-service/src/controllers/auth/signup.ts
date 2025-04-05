@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from "uuid";
+import jwt from "jsonwebtoken";
 import User from "../../db/user";
 import { validateEmail, validatePassword } from "../../utils/validation";
 
@@ -70,7 +71,7 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
         // Save user
         await newUser.save();
 
-        // Return user data (no password)
+        // Prepare user data (no password)
         const userData = {
             uid: newUser.uid,
             fullname: newUser.fullname,
@@ -78,11 +79,47 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
             profileImage: newUser.profileImage,
         };
 
-        res.status(201).json({
-            success: true,
-            message: "User registered successfully",
-            data: userData,
-        });
+        // Payload for JWT
+        const payload = {
+            user: { id: newUser._id, uid: newUser.uid, email: newUser.email },
+        };
+
+        // Get JWT secret
+        const jwtSecret = process.env.JWT_SECRET;
+        if (!jwtSecret) {
+            console.error("JWT_SECRET undefined");
+            res.status(500).json({
+                success: false,
+                code: "signup-e6",
+                message: "Server config error",
+            });
+            return;
+        }
+
+        // Sign token
+        jwt.sign(
+            payload,
+            jwtSecret,
+            { expiresIn: "7d" },
+            (err, token) => {
+                if (err) {
+                    console.error("Token error:", err);
+                    res.status(500).json({
+                        success: false,
+                        code: "signup-e7",
+                        message: "Token generation error",
+                    });
+                    return;
+                }
+
+                // Return user data and token
+                res.status(201).json({
+                    success: true,
+                    message: "User registered successfully",
+                    data: { user: userData, token },
+                });
+            }
+        );
     } catch (error) {
         console.error("Signup error:", error);
         res.status(500).json({
