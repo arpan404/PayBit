@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import User from "../../db/user";
 
-const forgetPassword = async (
+const changePassword = async (
   req: Request,
   res: Response,
 ): Promise<Response> => {
@@ -71,4 +71,4 @@ const forgetPassword = async (
   }
 };
 
-export default forgetPassword;
+export default changePassword;

@@ -4,7 +4,8 @@ import helmet from "helmet";
 import winston from "winston";
 import { v4 as uuidv4 } from "uuid";
 import connectDB from "./db/connect";
-import authRoutes from "./routes/auth";
+import authRoutes from "./routes/auth"
+import userRoutes from "./routes/user";
 import { config } from "dotenv";
 import path from "path";
 
@@ -56,13 +57,13 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 app.use(helmet());
 
-app.use(
-  morgan(":method :url :status :response-time ms - :res[content-length]", {
-    stream: {
-      write: (message: string) => logger.info(message.trim()),
-    },
-  }),
-);
+// app.use(
+//   morgan(":method :url :status :response-time ms - :res[content-length]", {
+//     stream: {
+//       write: (message: string) => logger.info(message.trim()),
+//     },
+//   }),
+// );
 
 app.use(express.json());
 
@@ -70,6 +71,7 @@ app.use("/upload", express.static(path.join(__dirname, "../public")));
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/user", userRoutes);
 
 app.get("/", (_req: Request, res: Response) => {
   res.send("PayBit API is running");

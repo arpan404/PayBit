@@ -48,10 +48,10 @@ afterAll(async () => {
     await User.deleteOne({ email: testUser.email });
 });
 
-describe("Auth - Forget Password Controller", () => {
+describe("Auth - Change Password Controller", () => {
     it("should successfully change password with valid credentials", async () => {
         const response = await request(app)
-            .post("/api/auth/forget-password")
+            .post("/api/auth/change-password")
             .set("x-auth-token", authToken)
             .send({
                 currentPassword: testUser.password,
@@ -71,7 +71,7 @@ describe("Auth - Forget Password Controller", () => {
 
     it("should return error when no auth token is provided", async () => {
         await request(app)
-            .post("/api/auth/forget-password")
+            .post("/api/auth/change-password")
             .send({
                 currentPassword: testUser.password,
                 newPassword: testUser.newPassword,
@@ -86,7 +86,7 @@ describe("Auth - Forget Password Controller", () => {
 
     it("should return error when auth token is invalid", async () => {
         await request(app)
-            .post("/api/auth/forget-password")
+            .post("/api/auth/change-password")
             .set("x-auth-token", "invalid-token")
             .send({
                 currentPassword: testUser.password,
@@ -101,7 +101,7 @@ describe("Auth - Forget Password Controller", () => {
 
     it("should return error when required fields are missing", async () => {
         await request(app)
-            .post("/api/auth/forget-password")
+            .post("/api/auth/change-password")
             .set("x-auth-token", authToken)
             .send({
                 newPassword: testUser.newPassword,
@@ -112,7 +112,7 @@ describe("Auth - Forget Password Controller", () => {
                 expect(res.body).toHaveProperty("message", "Both current and new passwords are required.");
             });
         await request(app)
-            .post("/api/auth/forget-password")
+            .post("/api/auth/change-password")
             .set("x-auth-token", authToken)
             .send({
                 currentPassword: testUser.password,
@@ -122,7 +122,7 @@ describe("Auth - Forget Password Controller", () => {
                 expect(res.body).toHaveProperty("code", "error-e1");
             });
         await request(app)
-            .post("/api/auth/forget-password")
+            .post("/api/auth/change-password")
             .set("x-auth-token", authToken)
             .send({})
             .expect(400)
@@ -133,7 +133,7 @@ describe("Auth - Forget Password Controller", () => {
 
     it("should return error when current password is incorrect", async () => {
         await request(app)
-            .post("/api/auth/forget-password")
+            .post("/api/auth/change-password")
             .set("x-auth-token", authToken)
             .send({
                 currentPassword: "WrongPassword123!",
@@ -148,7 +148,7 @@ describe("Auth - Forget Password Controller", () => {
 
     it("should return error when new password is the same as current password", async () => {
         await request(app)
-            .post("/api/auth/forget-password")
+            .post("/api/auth/change-password")
             .set("x-auth-token", authToken)
             .send({
                 currentPassword: testUser.password,
@@ -163,7 +163,7 @@ describe("Auth - Forget Password Controller", () => {
 
     it("should return error when new password is too weak", async () => {
         await request(app)
-            .post("/api/auth/forget-password")
+            .post("/api/auth/change-password")
             .set("x-auth-token", authToken)
             .send({
                 currentPassword: testUser.password,
@@ -191,7 +191,7 @@ describe("Auth - Forget Password Controller", () => {
             { expiresIn: "1h" },
         );
         await request(app)
-            .post("/api/auth/forget-password")
+            .post("/api/auth/change-password")
             .set("x-auth-token", invalidToken)
             .send({
                 currentPassword: testUser.password,
@@ -210,7 +210,7 @@ describe("Auth - Forget Password Controller", () => {
             throw new Error("Simulated database error");
         });
         await request(app)
-            .post("/api/auth/forget-password")
+            .post("/api/auth/change-password")
             .set("x-auth-token", authToken)
             .send({
                 currentPassword: testUser.password,
@@ -226,7 +226,7 @@ describe("Auth - Forget Password Controller", () => {
 
     it("should securely hash the new password", async () => {
         await request(app)
-            .post("/api/auth/forget-password")
+            .post("/api/auth/change-password")
             .set("x-auth-token", authToken)
             .send({
                 currentPassword: testUser.password,
