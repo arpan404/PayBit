@@ -8,6 +8,7 @@ import authRoutes from "./routes/auth"
 import userRoutes from "./routes/user";
 import { config } from "dotenv";
 import path from "path";
+import donateRoutes from "./routes/donation";
 
 // Load environment variables from .env file
 config();
@@ -57,13 +58,13 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 app.use(helmet());
 
-// app.use(
-//   morgan(":method :url :status :response-time ms - :res[content-length]", {
-//     stream: {
-//       write: (message: string) => logger.info(message.trim()),
-//     },
-//   }),
-// );
+app.use(
+  morgan(":method :url :status :response-time ms - :res[content-length]", {
+    stream: {
+      write: (message: string) => logger.info(message.trim()),
+    },
+  }),
+);
 
 app.use(express.json());
 
@@ -72,6 +73,7 @@ app.use("/upload", express.static(path.join(__dirname, "../public")));
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
+app.use("/api/donation", donateRoutes);
 
 app.get("/", (_req: Request, res: Response) => {
   res.send("PayBit API is running");

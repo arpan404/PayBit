@@ -6,7 +6,7 @@ import transferFunds from '../../services/transferFunds';
 
 /**
  * Donate to Campaign Controller
- * Allows an authenticated user to donate to a campaign
+ * Allows a user to donate to a campaign
  * 
  * @route POST /api/donation/donate/:id
  * @access Private (requires auth token)
@@ -74,8 +74,6 @@ export const donate = async (req: Request, res: Response): Promise<void> => {
 
         // Find the campaign
         const campaign = await DonationCampaign.findById(id);
-
-        // Check if campaign exists
         if (!campaign) {
             res.status(404).json({
                 success: false,
@@ -86,8 +84,8 @@ export const donate = async (req: Request, res: Response): Promise<void> => {
         }
 
         // Find the campaign creator
-        const campaignCreator = await User.findOne({ uid: campaign.creatorUid });
-        if (!campaignCreator) {
+        const creatorUser = await User.findOne({ uid: campaign.creatorUid });
+        if (!creatorUser) {
             res.status(404).json({
                 success: false,
                 code: 'donate-e7',
@@ -96,7 +94,7 @@ export const donate = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        // Prevent donating to your own campaign (optional, remove if self-donations are allowed)
+        // Prevent users from donating to their own campaigns
         if (donorUser.uid === campaign.creatorUid) {
             res.status(400).json({
                 success: false,
@@ -106,36 +104,31 @@ export const donate = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        // Process the donation through dummy transfer function
-        // This will be replaced with actual blockchain transaction later
+        // Process the donation by transferring funds
         try {
-            // Call dummy transfer function
-            await transferFunds(
-                String(donorUser._id),  // Sender ID
-                String(campaignCreator._id), // Receiver ID
-                donationAmount // Amount
-            );
-        } catch (transferError) {
-            // Handle transfer errors
+            await transferFunds(String(donorUser._id), String(creatorUser._id), donationAmount);
+        } catch (transferError: any) {
             res.status(400).json({
                 success: false,
                 code: 'donate-e9',
-                message: 'Error processing donation transfer',
-                details: (transferError as Error).message
+                message: 'Failed to process donation',
+                details: transferError.message,
             });
             return;
         }
 
-        // Update campaign's collected amount
-        campaign.collectedAmount += donationAmount;
+        // Update the campaign's collected amount
+        const newCollectedAmount = campaign.collectedAmount + donationAmount;
+        campaign.collectedAmount = newCollectedAmount;
         await campaign.save();
 
-        // Calculate updated progress
-        const progress = campaign.goalAmount > 0
-            ? (campaign.collectedAmount / campaign.goalAmount) * 100
-            : 0;
+        // Calculate progress percentage
+        const progress = Math.min(100, Math.round((newCollectedAmount / campaign.goalAmount) * 100));
 
-        // Return success response
+        // Determine if campaign is now complete
+        const isComplete = newCollectedAmount >= campaign.goalAmount;
+
+        // Return successful response
         res.status(200).json({
             success: true,
             message: 'Donation successful',
@@ -144,10 +137,10 @@ export const donate = async (req: Request, res: Response): Promise<void> => {
                 campaignName: campaign.name,
                 donationAmount,
                 donorName: donorUser.fullname,
-                newTotal: campaign.collectedAmount,
-                progress: Math.min(100, Math.round(progress * 100) / 100),
-                isComplete: campaign.collectedAmount >= campaign.goalAmount
-            }
+                newTotal: newCollectedAmount,
+                progress,
+                isComplete,
+            },
         });
     } catch (error) {
         console.error('Donation error:', error);
