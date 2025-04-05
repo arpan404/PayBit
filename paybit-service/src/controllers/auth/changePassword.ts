@@ -10,13 +10,11 @@ const changePassword = async (
     const { currentPassword, newPassword } = req.body;
 
     if (!currentPassword || !newPassword) {
-      return res
-        .status(400)
-        .json({
-          message: "Both current and new passwords are required.",
-          code: "error-e1",
-        });
-    }   
+      return res.status(400).json({
+        message: "Both current and new passwords are required.",
+        code: "error-e1",
+      });
+    }
     const userId = req.user?.id;
     if (!userId) {
       return res
@@ -41,22 +39,18 @@ const changePassword = async (
 
     // Prevent setting the new password the same as the current password
     if (currentPassword === newPassword) {
-      return res
-        .status(400)
-        .json({
-          message: "New password must be different from the current password.",
-          code: "error-e5",
-        });
+      return res.status(400).json({
+        message: "New password must be different from the current password.",
+        code: "error-e5",
+      });
     }
 
     // Basic validation for new password (e.g., minimum length)
     if (newPassword.length < 8) {
-      return res
-        .status(400)
-        .json({
-          message: "New password must be at least 8 characters long.",
-          code: "error-e6",
-        });
+      return res.status(400).json({
+        message: "New password must be at least 8 characters long.",
+        code: "error-e6",
+      });
     }
 
     // Hash the new password and update the user record

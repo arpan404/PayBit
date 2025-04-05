@@ -33,6 +33,7 @@ npm start
 ```
 
 This will start the Expo development server. You can then:
+
 - Press `i` to open in iOS simulator
 - Press `a` to open in Android emulator
 - Press `w` to open in web browser

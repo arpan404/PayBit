@@ -4,7 +4,7 @@ import helmet from "helmet";
 import winston from "winston";
 import { v4 as uuidv4 } from "uuid";
 import connectDB from "./db/connect";
-import authRoutes from "./routes/auth"
+import authRoutes from "./routes/auth";
 import userRoutes from "./routes/user";
 import { config } from "dotenv";
 import path from "path";
