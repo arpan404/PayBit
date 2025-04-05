@@ -1,214 +1,176 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  Alert,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
-import { Ionicons } from "@expo/vector-icons";
-import { BlurView } from "expo-blur";
-import { LinearGradient } from "expo-linear-gradient";
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '../../context/ThemeContext';
 
 interface Transaction {
-  id: string;
-  type: "sent" | "received";
-  amount: number;
-  bitcoinAmount: number;
-  name: string;
-  date: string;
-  status: "completed" | "pending" | "failed";
+    id: string;
+    type: 'sent' | 'received';
+    amount: string;
+    fiatAmount: string;
+    date: string;
 }
 
-const TransactionsScreen = () => {
-  const [activeFilter, setActiveFilter] = useState<"all" | "sent" | "received">(
-    "all",
-  );
+const TransactionItem = ({ item }: { item: Transaction }) => {
+    const { colors } = useTheme();
+    const isSent = item.type === 'sent';
 
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    {
-      id: "1",
-      type: "received",
-      amount: 245.5,
-      bitcoinAmount: 0.0048,
-      name: "James Wilson",
-      date: "2023-08-15",
-      status: "completed",
-    },
-    {
-      id: "2",
-      type: "sent",
-      amount: 120.75,
-      bitcoinAmount: 0.0025,
-      name: "Sarah Johnson",
-      date: "2023-08-14",
-      status: "completed",
-    },
-    {
-      id: "3",
-      type: "received",
-      amount: 500.0,
-      bitcoinAmount: 0.0102,
-      name: "Michael Brown",
-      date: "2023-08-12",
-      status: "completed",
-    },
-    {
-      id: "4",
-      type: "sent",
-      amount: 42.3,
-      bitcoinAmount: 0.0008,
-      name: "Coffee Shop",
-      date: "2023-08-10",
-      status: "completed",
-    },
-    {
-      id: "5",
-      type: "sent",
-      amount: 350.0,
-      bitcoinAmount: 0.0072,
-      name: "Rent Payment",
-      date: "2023-08-05",
-      status: "pending",
-    },
-    {
-      id: "6",
-      type: "received",
-      amount: 180.25,
-      bitcoinAmount: 0.0037,
-      name: "Refund",
-      date: "2023-08-02",
-      status: "completed",
-    },
-    {
-      id: "7",
-      type: "sent",
-      amount: 75.0,
-      bitcoinAmount: 0.0015,
-      name: "Utility Bill",
-      date: "2023-07-28",
-      status: "failed",
-    },
-  ]);
+    return (
+        <TouchableOpacity
+            style={[styles.transactionItem, { backgroundColor: colors.card }]}
+            onPress={() => {
+                // Handle transaction press
+            }}
+        >
+            <View style={[styles.iconContainer, { backgroundColor: isSent ? 'rgba(255, 59, 48, 0.1)' : 'rgba(52, 199, 89, 0.1)' }]}>
+                <Ionicons
+                    name={isSent ? "arrow-up" : "arrow-down"}
+                    size={24}
+                    color={isSent ? '#FF3B30' : '#34C759'}
+                />
+            </View>
+            <View style={styles.transactionInfo}>
+                <Text style={[styles.transactionType, { color: colors.text }]}>
+                    {isSent ? 'Sent' : 'Received'} Bitcoin
+                </Text>
+                <Text style={[styles.transactionDate, { color: colors.textSecondary }]}>
+                    {item.date}
+                </Text>
+            </View>
+            <View style={styles.amountContainer}>
+                <Text style={[styles.amount, { color: isSent ? '#FF3B30' : '#34C759' }]}>
+                    {isSent ? '-' : '+'}{item.amount} BTC
+                </Text>
+                <Text style={[styles.fiatAmount, { color: colors.textSecondary }]}>
+                    ${item.fiatAmount} USD
+                </Text>
+            </View>
+        </TouchableOpacity>
+    );
+};
+
+const TransactionsScreen = () => {
+    const { colors, isDarkMode } = useTheme();
+    const [activeFilter, setActiveFilter] = useState<'all' | 'sent' | 'received'>('all');
+
+    const [transactions, setTransactions] = useState<Transaction[]>([
+        {
+            id: '1',
+            type: 'received',
+            amount: '0.0012',
+            fiatAmount: '50.00',
+            date: '2 hours ago',
+        },
+        {
+            id: '2',
+            type: 'sent',
+            amount: '0.0005',
+            fiatAmount: '20.00',
+            date: '1 day ago',
+        },
+        {
+            id: '3',
+            type: 'received',
+            amount: '0.0012',
+            fiatAmount: '50.00',
+            date: '2 hours ago',
+        },
+        {
+            id: '4',
+            type: 'sent',
+            amount: '0.0005',
+            fiatAmount: '20.00',
+            date: '1 day ago',
+        },
+        {
+            id: '5',
+            type: 'sent',
+            amount: '0.0005',
+            fiatAmount: '20.00',
+            date: '1 day ago',
+        },
+        {
+            id: '6',
+            type: 'received',
+            amount: '0.0012',
+            fiatAmount: '50.00',
+            date: '2 hours ago',
+        },
+        {
+            id: '7',
+            type: 'sent',
+            amount: '0.0005',
+            fiatAmount: '20.00',
+            date: '1 day ago',
+        },
+    ]);
 
   const filteredTransactions = transactions.filter((transaction) => {
     if (activeFilter === "all") return true;
     return transaction.type === activeFilter;
   });
 
-  const handleTransactionPress = (transaction: Transaction) => {
-    Alert.alert(
-      "Transaction Details",
-      `${transaction.type === "sent" ? "Sent to" : "Received from"}: ${transaction.name}\nAmount: $${transaction.amount.toFixed(2)} (${transaction.bitcoinAmount} BTC)\nDate: ${transaction.date}\nStatus: ${transaction.status}`,
-    );
-  };
+    const handleTransactionPress = (transaction: Transaction) => {
+        Alert.alert(
+            'Transaction Details',
+            `${transaction.type === 'sent' ? 'Sent to' : 'Received from'}: ${transaction.amount} BTC\nDate: ${transaction.date}`
+        );
+    };
 
-  const renderTransaction = ({ item }: { item: Transaction }) => {
-    return (
-      <TouchableOpacity
-        style={styles.transactionItem}
-        onPress={() => handleTransactionPress(item)}
-      >
-        <BlurView intensity={20} style={styles.transactionItemContent}>
-          <View style={styles.transactionIcon}>
-            <LinearGradient
-              colors={
-                item.type === "sent"
-                  ? ["#FF6B6B", "#FF5252"]
-                  : ["#4CAF50", "#45A049"]
-              }
-              style={styles.transactionIconGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+    const renderTransaction = ({ item }: { item: Transaction }) => {
+        return (
+            <TouchableOpacity
+                style={[styles.transactionItem, { backgroundColor: colors.card }]}
+                onPress={() => handleTransactionPress(item)}
             >
-              <Ionicons
-                name={
-                  item.type === "sent"
-                    ? "arrow-up-outline"
-                    : "arrow-down-outline"
-                }
-                size={20}
-                color="#fff"
-              />
-            </LinearGradient>
-          </View>
-          <View style={styles.transactionDetails}>
-            <Text style={styles.transactionName}>{item.name}</Text>
-            <View style={styles.transactionMeta}>
-              <Text style={styles.transactionDate}>{item.date}</Text>
-              {item.status !== "completed" && (
-                <View
-                  style={[
-                    styles.statusBadge,
-                    item.status === "pending"
-                      ? styles.pendingBadge
-                      : styles.failedBadge,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.statusText,
-                      item.status === "pending"
-                        ? styles.pendingText
-                        : styles.failedText,
-                    ]}
-                  >
-                    {item.status}
-                  </Text>
+                <View style={[styles.iconContainer, { backgroundColor: item.type === 'sent' ? 'rgba(255, 59, 48, 0.1)' : 'rgba(52, 199, 89, 0.1)' }]}>
+                    <Ionicons
+                        name={item.type === 'sent' ? 'arrow-up' : 'arrow-down'}
+                        size={24}
+                        color={item.type === 'sent' ? '#FF3B30' : '#34C759'}
+                    />
                 </View>
-              )}
+                <View style={styles.transactionInfo}>
+                    <Text style={[styles.transactionType, { color: colors.text }]}>
+                        {item.type === 'sent' ? 'Sent' : 'Received'} Bitcoin
+                    </Text>
+                    <Text style={[styles.transactionDate, { color: colors.textSecondary }]}>
+                        {item.date}
+                    </Text>
+                </View>
+                <View style={styles.amountContainer}>
+                    <Text style={[styles.amount, { color: item.type === 'sent' ? '#FF3B30' : '#34C759' }]}>
+                        {item.type === 'sent' ? '-' : '+'}${item.fiatAmount}
+                    </Text>
+                    <Text style={[styles.fiatAmount, { color: colors.textSecondary }]}>
+                        ${item.amount} BTC
+                    </Text>
+                </View>
+            </TouchableOpacity>
+        );
+    };
+
+    return (
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+            <StatusBar style={isDarkMode ? "light" : "dark"} />
+
+            <View style={styles.header}>
+                <Text style={[styles.title, { color: colors.text }]}>Transactions</Text>
             </View>
-          </View>
-          <View style={styles.transactionAmount}>
-            <Text
-              style={[
-                styles.amountText,
-                { color: item.type === "sent" ? "#FF5252" : "#4CAF50" },
-              ]}
-            >
-              {item.type === "sent" ? "-" : "+"}${item.amount.toFixed(2)}
-            </Text>
-            <Text style={styles.bitcoinText}>
-              {item.type === "sent" ? "-" : "+"}
-              {item.bitcoinAmount} BTC
-            </Text>
-          </View>
-        </BlurView>
-      </TouchableOpacity>
-    );
-  };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="light" />
-
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Transaction History</Text>
-        <TouchableOpacity style={styles.filterButton}>
-          <Ionicons name="filter" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.filterTabs}>
-        <TouchableOpacity
-          style={[
-            styles.filterTab,
-            activeFilter === "all" && styles.activeFilterTab,
-          ]}
-          onPress={() => setActiveFilter("all")}
-        >
-          <Text
-            style={[
-              styles.filterText,
-              activeFilter === "all" && styles.activeFilterText,
-            ]}
-          >
-            All
-          </Text>
-        </TouchableOpacity>
+            <View style={[styles.filterTabs, { backgroundColor: colors.card }]}>
+                <TouchableOpacity
+                    style={[styles.filterTab, activeFilter === 'all' && styles.activeFilterTab]}
+                    onPress={() => setActiveFilter('all')}
+                >
+                    <Text style={[styles.filterText, activeFilter === 'all' && styles.activeFilterText]}>
+                        All
+                    </Text>
+                </TouchableOpacity>
 
         <TouchableOpacity
           style={[
@@ -245,142 +207,92 @@ const TransactionsScreen = () => {
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={filteredTransactions}
-        renderItem={renderTransaction}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.transactionsList}
-      />
-    </SafeAreaView>
-  );
+            <FlatList
+                data={filteredTransactions}
+                renderItem={renderTransaction}
+                keyExtractor={item => item.id}
+                contentContainerStyle={styles.listContent}
+                showsVerticalScrollIndicator={false}
+            />
+        </SafeAreaView>
+    );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#121212",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-  },
-  filterButton: {
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-  },
-  filterTabs: {
-    flexDirection: "row",
-    marginHorizontal: 16,
-    marginBottom: 16,
-    backgroundColor: "#1A1A1A",
-    borderRadius: 12,
-    padding: 4,
-  },
-  filterTab: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  activeFilterTab: {
-    backgroundColor: "rgba(247, 147, 26, 0.15)",
-  },
-  filterText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#AAAAAA",
-  },
-  activeFilterText: {
-    color: "#F7931A",
-  },
-  transactionsList: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  transactionItem: {
-    marginBottom: 12,
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  transactionItemContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-  },
-  transactionIcon: {
-    marginRight: 12,
-  },
-  transactionIconGradient: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  transactionDetails: {
-    flex: 1,
-  },
-  transactionName: {
-    fontSize: 16,
-    fontWeight: "500",
-    marginBottom: 4,
-    color: "#FFFFFF",
-  },
-  transactionMeta: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  transactionDate: {
-    fontSize: 12,
-    opacity: 0.7,
-    marginRight: 8,
-    color: "#FFFFFF",
-  },
-  statusBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  pendingBadge: {
-    backgroundColor: "#FFF3E0",
-  },
-  failedBadge: {
-    backgroundColor: "#FFEBEE",
-  },
-  statusText: {
-    fontSize: 10,
-    fontWeight: "500",
-  },
-  pendingText: {
-    color: "#FF9800",
-  },
-  failedText: {
-    color: "#F44336",
-  },
-  transactionAmount: {
-    alignItems: "flex-end",
-  },
-  amountText: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 2,
-  },
-  bitcoinText: {
-    fontSize: 12,
-    color: "#AAAAAA",
-  },
+    container: {
+        flex: 1,
+    },
+    header: {
+        padding: 16,
+    },
+    title: {
+        fontSize: 24,
+        fontWeight: 'bold',
+    },
+    filterTabs: {
+        flexDirection: 'row',
+        marginHorizontal: 16,
+        marginBottom: 16,
+        borderRadius: 12,
+        padding: 4,
+    },
+    filterTab: {
+        flex: 1,
+        alignItems: 'center',
+        paddingVertical: 10,
+        borderRadius: 8,
+    },
+    activeFilterTab: {
+        backgroundColor: 'rgba(247, 147, 26, 0.15)',
+    },
+    filterText: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: '#AAAAAA',
+    },
+    activeFilterText: {
+        color: '#F7931A',
+    },
+    listContent: {
+        padding: 16,
+    },
+    transactionItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 12,
+    },
+    iconContainer: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 16,
+    },
+    transactionInfo: {
+        flex: 1,
+    },
+    transactionType: {
+        fontSize: 16,
+        fontWeight: '600',
+        marginBottom: 4,
+    },
+    transactionDate: {
+        fontSize: 14,
+    },
+    amountContainer: {
+        alignItems: 'flex-end',
+    },
+    amount: {
+        fontSize: 16,
+        fontWeight: '600',
+        marginBottom: 4,
+    },
+    fiatAmount: {
+        fontSize: 14,
+    },
 });
 
 export default TransactionsScreen;

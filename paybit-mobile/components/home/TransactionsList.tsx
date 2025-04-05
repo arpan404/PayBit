@@ -1,22 +1,15 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import { BlurView } from "expo-blur";
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../../context/ThemeContext';
 
-export interface Transaction {
-  id: string;
-  type: "send" | "receive";
-  amount: number;
-  recipient: string;
-  date: string;
-  status: "completed" | "pending";
+interface Transaction {
+    id: string;
+    type: 'sent' | 'received';
+    amount: string;
+    fiatAmount: string;
+    recipient: string;
+    timestamp: string;
 }
 
 interface TransactionsListProps {
@@ -25,159 +18,127 @@ interface TransactionsListProps {
   onTransactionPress: (transaction: Transaction) => void;
 }
 
-const TransactionsList = ({
-  transactions,
-  onSeeAllPress,
-  onTransactionPress,
-}: TransactionsListProps) => {
-  return (
-    <View style={styles.transactionsSection}>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Recent Transactions</Text>
-        <TouchableOpacity onPress={onSeeAllPress}>
-          <Text style={styles.seeAllText}>See All</Text>
+const TransactionItem: React.FC<{ transaction: Transaction; onPress: () => void }> = ({ transaction, onPress }) => {
+    const { colors } = useTheme();
+
+    return (
+        <TouchableOpacity
+            style={[styles.transactionItem, { backgroundColor: colors.card }]}
+            onPress={onPress}
+        >
+            <View style={[styles.iconContainer, { backgroundColor: 'rgba(247, 147, 26, 0.1)' }]}>
+                <Ionicons
+                    name={transaction.type === 'received' ? 'arrow-down' : 'arrow-up'}
+                    size={24}
+                    color="#F7931A"
+                />
+            </View>
+            <View style={styles.transactionInfo}>
+                <Text style={[styles.recipient, { color: colors.text }]}>{transaction.recipient}</Text>
+                <Text style={[styles.timestamp, { color: colors.text }]}>{transaction.timestamp}</Text>
+            </View>
+            <View style={styles.amountContainer}>
+                <Text style={[styles.amount, { color: colors.text }]}>{transaction.amount}</Text>
+                <Text style={[styles.fiatAmount, { color: colors.text }]}>{transaction.fiatAmount}</Text>
+            </View>
         </TouchableOpacity>
-      </View>
-      <ScrollView style={styles.transactionsList}>
-        {transactions.map((transaction) => (
-          <TouchableOpacity
-            key={transaction.id}
-            onPress={() => onTransactionPress(transaction)}
-          >
-            <BlurView intensity={20} style={styles.transactionItem}>
-              <View style={styles.transactionIcon}>
-                <LinearGradient
-                  colors={
-                    transaction.type === "send"
-                      ? ["#FF6B6B", "#FF5252"]
-                      : ["#4CAF50", "#45A049"]
-                  }
-                  style={styles.transactionIconGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Ionicons
-                    name={
-                      transaction.type === "send"
-                        ? "arrow-up-outline"
-                        : "arrow-down-outline"
-                    }
-                    size={20}
-                    color="#fff"
-                  />
-                </LinearGradient>
-              </View>
-              <View style={styles.transactionDetails}>
-                <Text style={styles.transactionRecipient}>
-                  {transaction.recipient}
-                </Text>
-                <View style={styles.transactionMeta}>
-                  <Text style={styles.transactionDate}>{transaction.date}</Text>
-                  {transaction.status === "pending" && (
-                    <View style={styles.pendingBadge}>
-                      <Text style={styles.pendingText}>Pending</Text>
-                    </View>
-                  )}
-                </View>
-              </View>
-              <Text
-                style={[
-                  styles.transactionAmount,
-                  {
-                    color: transaction.type === "send" ? "#FF5252" : "#4CAF50",
-                  },
-                ]}
-              >
-                {transaction.type === "send" ? "-" : "+"}$
-                {transaction.amount.toFixed(2)}
-              </Text>
-            </BlurView>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-    </View>
-  );
+    );
+};
+
+const TransactionsList: React.FC<TransactionsListProps> = ({
+    transactions,
+    onSeeAllPress,
+    onTransactionPress,
+}) => {
+    const { colors } = useTheme();
+
+    return (
+        <View style={styles.container}>
+            <View style={styles.header}>
+                <Text style={[styles.title, { color: colors.text }]}>Recent Transactions</Text>
+                <TouchableOpacity onPress={onSeeAllPress}>
+                    <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
+                </TouchableOpacity>
+            </View>
+            <FlatList
+                data={transactions}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                    <TransactionItem
+                        transaction={item}
+                        onPress={() => onTransactionPress(item)}
+                    />
+                )}
+                ItemSeparatorComponent={() => <View style={styles.separator} />}
+            />
+        </View>
+    );
 };
 
 const styles = StyleSheet.create({
-  transactionsSection: {
-    flex: 1,
-    backgroundColor: "#1A1A1A",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 16,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-  },
-  seeAllText: {
-    fontSize: 14,
-    color: "#F7931A",
-    fontWeight: "500",
-  },
-  transactionsList: {
-    flex: 1,
-  },
-  transactionItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    overflow: "hidden",
-  },
-  transactionIcon: {
-    marginRight: 12,
-  },
-  transactionIconGradient: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  transactionDetails: {
-    flex: 1,
-  },
-  transactionRecipient: {
-    fontSize: 16,
-    fontWeight: "500",
-    marginBottom: 4,
-    color: "#FFFFFF",
-  },
-  transactionMeta: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  transactionDate: {
-    fontSize: 12,
-    opacity: 0.7,
-    marginRight: 8,
-    color: "#FFFFFF",
-  },
-  pendingBadge: {
-    backgroundColor: "#FFF3E0",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  pendingText: {
-    fontSize: 10,
-    color: "#FF9800",
-    fontWeight: "500",
-  },
-  transactionAmount: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
+    container: {
+        margin: 16,
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    title: {
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    seeAll: {
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    transactionItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+        borderRadius: 12,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+    },
+    iconContainer: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    transactionInfo: {
+        flex: 1,
+    },
+    recipient: {
+        fontSize: 16,
+        fontWeight: '500',
+        marginBottom: 4,
+    },
+    timestamp: {
+        fontSize: 12,
+        opacity: 0.7,
+    },
+    amountContainer: {
+        alignItems: 'flex-end',
+    },
+    amount: {
+        fontSize: 16,
+        fontWeight: '500',
+        marginBottom: 4,
+    },
+    fiatAmount: {
+        fontSize: 12,
+        opacity: 0.7,
+    },
+    separator: {
+        height: 12,
+    },
 });
 
 export default TransactionsList;

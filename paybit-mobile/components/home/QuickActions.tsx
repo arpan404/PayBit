@@ -11,17 +11,9 @@ interface ActionProps {
   onPress: () => void;
 =======
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
-
-interface ActionProps {
-    icon: string;
-    label: string;
-    onPress: () => void;
->>>>>>> 511b7396cac74187a96d7f5b881ef293d4ab047f:paybit-mobile/components/home/QuickActions.tsx
-}
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../../context/ThemeContext';
 
 interface QuickActionsProps {
   onRequest: () => void;
@@ -29,97 +21,64 @@ interface QuickActionsProps {
   onWallet: () => void;
 }
 
-const Action = ({ icon, label, onPress }: ActionProps) => (
-<<<<<<< HEAD:paybit-mobile/components/homescreen/QuickActions.tsx
-  <TouchableOpacity style={styles.actionButton} onPress={onPress}>
-    <LinearGradient
-      colors={["#F7931A", "#E2761B"]}
-      style={styles.actionIcon}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-    >
-      <Ionicons name={icon} size={24} color="#fff" />
-    </LinearGradient>
-    <Text style={styles.actionText}>{label}</Text>
-  </TouchableOpacity>
-);
+const QuickActions: React.FC<QuickActionsProps> = ({ onRequest, onQuickPay, onWallet }) => {
+    const { colors } = useTheme();
 
-const QuickActions = ({
-  onRequest,
-  onQuickPay,
-  onWallet,
-}: QuickActionsProps) => {
-  return (
-    <BlurView intensity={20} style={styles.quickActionsContainer}>
-      <View style={styles.quickActions}>
-        <Action icon="cash-outline" label="Request" onPress={onRequest} />
-        <Action icon="flash-outline" label="Quick Pay" onPress={onQuickPay} />
-        <Action icon="wallet-outline" label="Wallet" onPress={onWallet} />
-      </View>
-    </BlurView>
-  );
-=======
-    <TouchableOpacity style={styles.actionButton} onPress={onPress}>
-        <LinearGradient
-            colors={['#F7931A', '#E2761B']}
-            style={styles.actionIcon}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-        >
-
-            <Ionicons name={icon as any} size={24} color="#fff" />
-
-        </LinearGradient>
-        <Text style={styles.actionText}>{label}</Text>
-    </TouchableOpacity>
-);
-
-const QuickActions = ({ onRequest, onQuickPay, onWallet }: QuickActionsProps) => {
     return (
-        <BlurView intensity={20} style={styles.quickActionsContainer}>
-            <View style={styles.quickActions}>
-                <Action icon="people-outline" label="Crowdfund" onPress={onRequest} />
-                <Action icon="flash-outline" label="Quick Pay" onPress={onQuickPay} />
-                <Action icon="wallet-outline" label="Wallet" onPress={onWallet} />
-            </View>
-        </BlurView>
+        <View style={[styles.container, { backgroundColor: colors.card }]}>
+            <TouchableOpacity style={styles.actionButton} onPress={onRequest}>
+                <View style={[styles.iconContainer, { backgroundColor: 'rgba(247, 147, 26, 0.1)' }]}>
+                    <Ionicons name="arrow-down" size={24} color="#F7931A" />
+                </View>
+                <Text style={[styles.actionText, { color: colors.text }]}>Request</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionButton} onPress={onQuickPay}>
+                <View style={[styles.iconContainer, { backgroundColor: 'rgba(247, 147, 26, 0.1)' }]}>
+                    <Ionicons name="flash" size={24} color="#F7931A" />
+                </View>
+                <Text style={[styles.actionText, { color: colors.text }]}>Quick Pay</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionButton} onPress={onWallet}>
+                <View style={[styles.iconContainer, { backgroundColor: 'rgba(247, 147, 26, 0.1)' }]}>
+                    <Ionicons name="wallet" size={24} color="#F7931A" />
+                </View>
+                <Text style={[styles.actionText, { color: colors.text }]}>Wallet</Text>
+            </TouchableOpacity>
+        </View>
     );
 >>>>>>> 511b7396cac74187a96d7f5b881ef293d4ab047f:paybit-mobile/components/home/QuickActions.tsx
 };
 
 const styles = StyleSheet.create({
-  quickActionsContainer: {
-    marginHorizontal: 16,
-    marginBottom: 24,
-    borderRadius: 16,
-    overflow: "hidden",
-  },
-  quickActions: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    padding: 16,
-  },
-  actionButton: {
-    alignItems: "center",
-  },
-  actionIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 8,
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  actionText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#FFFFFF",
-  },
+    container: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        padding: 16,
+        margin: 16,
+        borderRadius: 20,
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+    },
+    actionButton: {
+        alignItems: 'center',
+    },
+    iconContainer: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    actionText: {
+        fontSize: 14,
+        fontWeight: '500',
+    },
 });
 
 export default QuickActions;

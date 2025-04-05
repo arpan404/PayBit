@@ -25,7 +25,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
->>>>>>> 511b7396cac74187a96d7f5b881ef293d4ab047f:paybit-mobile/components/profile/Profile.tsx
+import { useTheme } from '../../context/ThemeContext';
 
 interface ProfileOptionProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -53,6 +53,7 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
 =======
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { colors, isDarkMode } = useTheme();
 
     const handleBackPress = () => {
         if (onClose) {
@@ -76,18 +77,22 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
       "Password change functionality will be implemented here",
 =======
     const handleChangePassword = () => {
+        onClose?.();
         router.push('/change-password');
     };
 
     const handleNotificationSettings = () => {
+        onClose?.();
         router.push('/notifications');
     };
 
     const handleSecuritySettings = () => {
+        onClose?.();
         router.push('/security');
     };
 
     const handleHelpSupport = () => {
+        onClose?.();
         router.push('/help-support');
     };
 
@@ -114,21 +119,21 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
         subtitle,
         onPress,
         showBorder = true,
-        tintColor = "#F7931A"
+        tintColor = colors.primary
     }: ProfileOptionProps) => (
         <TouchableOpacity
-            style={[styles.option, showBorder && styles.borderBottom]}
+            style={[styles.option, showBorder && { borderBottomColor: colors.border }]}
             onPress={onPress}
         >
             <View style={[styles.iconContainer, { backgroundColor: `${tintColor}20` }]}>
                 <Ionicons name={icon} size={24} color={tintColor} />
             </View>
             <View style={styles.optionTextContainer}>
-                <Text style={styles.optionTitle} numberOfLines={1}>{title}</Text>
-                {subtitle && <Text style={styles.optionSubtitle} numberOfLines={2}>{subtitle}</Text>}
+                <Text style={[styles.optionTitle, { color: colors.text }]} numberOfLines={1}>{title}</Text>
+                {subtitle && <Text style={[styles.optionSubtitle, { color: colors.textSecondary }]} numberOfLines={2}>{subtitle}</Text>}
             </View>
             <View style={styles.rightContainer}>
-                <Ionicons name="chevron-forward" size={20} color="#AAAAAA" />
+                <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
             </View>
         </TouchableOpacity>
 >>>>>>> 511b7396cac74187a96d7f5b881ef293d4ab047f:paybit-mobile/components/profile/Profile.tsx
@@ -152,13 +157,13 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
   };
 =======
     return (
-        <View style={styles.container}>
-            <StatusBar style="light" />
-            <View style={[styles.header, { paddingTop: insets.top }]}>
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+            <StatusBar style={isDarkMode ? "light" : "dark"} />
+            <View style={[styles.header, { paddingTop: insets.top, backgroundColor: colors.background }]}>
                 <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-                    <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+                    <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Profile</Text>
+                <Text style={[styles.headerTitle, { color: colors.text }]}>Profile</Text>
                 <View style={styles.placeholder} />
             </View>
 
@@ -178,91 +183,16 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
                             >
                                 <Text style={styles.avatarText}>J</Text>
                             </LinearGradient>
-                            <TouchableOpacity style={styles.editButton} onPress={handleChangePhoto}>
+                            <TouchableOpacity style={[styles.editButton, { backgroundColor: colors.primary }]} onPress={handleChangePhoto}>
                                 <Ionicons name="camera" size={18} color="#FFFFFF" />
                             </TouchableOpacity>
                         </View>
-                        <Text style={styles.userName}>John Doe</Text>
-                        <Text style={styles.userEmail}>john.doe@example.com</Text>
+                        <Text style={[styles.userName, { color: colors.text }]}>John Doe</Text>
+                        <Text style={[styles.userEmail, { color: colors.textSecondary }]}>john.doe@example.com</Text>
                     </View>
->>>>>>> 511b7396cac74187a96d7f5b881ef293d4ab047f:paybit-mobile/components/profile/Profile.tsx
 
-  const handleLogout = () => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Logout",
-        onPress: () => {
-          // Navigate to login screen
-          Alert.alert("Logout", "You have been logged out");
-        },
-        style: "destructive",
-      },
-    ]);
-  };
-
-  const ProfileOption = ({
-    icon,
-    title,
-    subtitle,
-    onPress,
-    showBorder = true,
-    tintColor = "#F7931A",
-  }: ProfileOptionProps) => (
-    <TouchableOpacity
-      style={[styles.option, showBorder && styles.borderBottom]}
-      onPress={onPress}
-    >
-      <View
-        style={[styles.iconContainer, { backgroundColor: `${tintColor}20` }]}
-      >
-        <Ionicons name={icon} size={24} color={tintColor} />
-      </View>
-      <View style={styles.optionTextContainer}>
-        <Text style={styles.optionTitle}>{title}</Text>
-        {subtitle && <Text style={styles.optionSubtitle}>{subtitle}</Text>}
-      </View>
-      <Ionicons name="chevron-forward" size={20} color="#AAAAAA" />
-    </TouchableOpacity>
-  );
-
-  return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
-
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Profile</Text>
-          <View style={styles.placeholder} />
-        </View>
-
-        <ScrollView contentContainerStyle={styles.content}>
-          <View style={styles.profileSection}>
-            <View style={styles.avatarSection}>
-              <LinearGradient
-                colors={["#F7931A", "#E2761B"]}
-                style={styles.profileImage}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <Text style={styles.avatarText}>J</Text>
-              </LinearGradient>
-              <TouchableOpacity
-                style={styles.editButton}
-                onPress={handleChangePhoto}
-              >
-                <Ionicons name="camera" size={18} color="#FFFFFF" />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.userName}>John Doe</Text>
-            <Text style={styles.userEmail}>john.doe@example.com</Text>
-          </View>
-
-          <BlurView intensity={20} style={styles.optionsSection}>
-            <Text style={styles.sectionTitle}>Account Settings</Text>
+                    <BlurView intensity={20} tint={isDarkMode ? "dark" : "light"} style={[styles.optionsSection, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.sectionTitle, { color: colors.text }]}>Account Settings</Text>
 
             <ProfileOption
               icon="camera"
@@ -285,8 +215,8 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
             />
           </BlurView>
 
-          <BlurView intensity={20} style={styles.optionsSection}>
-            <Text style={styles.sectionTitle}>Security</Text>
+                    <BlurView intensity={20} tint={isDarkMode ? "dark" : "light"} style={[styles.optionsSection, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.sectionTitle, { color: colors.text }]}>Security</Text>
 
             <ProfileOption
               icon="shield-checkmark"
@@ -297,8 +227,8 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
             />
           </BlurView>
 
-          <BlurView intensity={20} style={styles.optionsSection}>
-            <Text style={styles.sectionTitle}>Support</Text>
+                    <BlurView intensity={20} tint={isDarkMode ? "dark" : "light"} style={[styles.optionsSection, { backgroundColor: colors.card }]}>
+                        <Text style={[styles.sectionTitle, { color: colors.text }]}>Support</Text>
 
             <ProfileOption
               icon="help-circle"
@@ -308,13 +238,16 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
             />
           </BlurView>
 
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Text style={styles.logoutText}>Logout</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </SafeAreaView>
-    </View>
-  );
+                    <TouchableOpacity
+                        style={[styles.logoutButton, { backgroundColor: `${colors.error}20` }]}
+                        onPress={handleLogout}
+                    >
+                        <Text style={[styles.logoutText, { color: colors.error }]}>Logout</Text>
+                    </TouchableOpacity>
+                </ScrollView>
+            </SafeAreaView>
+        </View>
+    );
 };
 
 const styles = StyleSheet.create({
@@ -456,7 +389,6 @@ const styles = StyleSheet.create({
 =======
     container: {
         flex: 1,
-        backgroundColor: '#121212',
     },
     safeArea: {
         flex: 1,
@@ -467,7 +399,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingBottom: 20,
-        backgroundColor: '#121212',
     },
     backButton: {
         width: 40,
@@ -478,7 +409,6 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#FFFFFF',
         textAlign: 'center',
         flex: 1,
     },
@@ -517,7 +447,6 @@ const styles = StyleSheet.create({
         position: 'absolute',
         right: 0,
         bottom: 0,
-        backgroundColor: '#F7931A',
         width: 36,
         height: 36,
         borderRadius: 18,
@@ -529,25 +458,22 @@ const styles = StyleSheet.create({
     userName: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#FFFFFF',
         marginBottom: 4,
     },
     userEmail: {
         fontSize: 16,
-        color: '#AAAAAA',
     },
     optionsSection: {
-        backgroundColor: 'rgba(26, 26, 26, 0.7)',
         borderRadius: 16,
         marginHorizontal: 16,
         marginBottom: 16,
         overflow: 'hidden',
-        width: '100%',
+        width: 'auto',
+        alignSelf: 'stretch',
     },
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#FFFFFF',
         marginBottom: 16,
         paddingHorizontal: 16,
         paddingTop: 16,
@@ -555,9 +481,15 @@ const styles = StyleSheet.create({
     option: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 16,
+        paddingVertical: 12,
         paddingHorizontal: 16,
         width: '100%',
+        borderBottomWidth: 1,
+    },
+    optionContent: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     iconContainer: {
         width: 44,
@@ -565,7 +497,7 @@ const styles = StyleSheet.create({
         borderRadius: 22,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 16,
+        marginRight: 12,
     },
     optionTextContainer: {
         flex: 1,
@@ -581,29 +513,21 @@ const styles = StyleSheet.create({
     optionTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#FFFFFF',
-        marginBottom: 4,
+        marginBottom: 2,
     },
     optionSubtitle: {
         fontSize: 14,
-        color: '#AAAAAA',
         lineHeight: 18,
-    },
-    borderBottom: {
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255, 255, 255, 0.1)',
     },
     logoutButton: {
         marginHorizontal: 16,
         marginTop: 8,
         marginBottom: 16,
-        backgroundColor: 'rgba(255, 59, 48, 0.2)',
         paddingVertical: 16,
         borderRadius: 12,
         alignItems: 'center',
     },
     logoutText: {
-        color: '#FF3B30',
         fontSize: 18,
         fontWeight: '600',
     },

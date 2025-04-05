@@ -16,11 +16,11 @@ import { View, StyleSheet } from 'react-native';
 import { SplashScreen } from 'expo-router';
 import { Stack } from 'expo-router';
 import * as SplashScreenLib from 'expo-splash-screen';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { ThemeProvider as CustomThemeProvider, useTheme } from '../context/ThemeContext';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
->>>>>>> 511b7396cac74187a96d7f5b881ef293d4ab047f
+import { CurrencyProvider } from '../context/CurrencyContext';
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 
@@ -44,111 +44,91 @@ export default function RootLayout() {
   }
 
   return (
-<<<<<<< HEAD
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-=======
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <View style={styles.container}>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            animation: 'slide_from_right',
-          }}
-        >
-          <Stack.Screen
-            name="(tabs)"
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="(auth)"
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="profile"
-            options={{
-              headerShown: true,
-              headerBackTitle: 'Back',
-              headerStyle: {
-                backgroundColor: '#121212',
-              },
-              headerTintColor: '#FFFFFF',
-              headerTitleStyle: {
-                color: '#FFFFFF',
-              },
-            }}
-          />
-          <Stack.Screen
-            name="change-password"
-            options={{
-              headerShown: true,
-              headerBackTitle: 'Back',
-              headerStyle: {
-                backgroundColor: '#121212',
-              },
-              headerTintColor: '#FFFFFF',
-              headerTitleStyle: {
-                color: '#FFFFFF',
-              },
-            }}
-          />
-          <Stack.Screen
-            name="notifications"
-            options={{
-              headerShown: true,
-              headerBackTitle: 'Back',
-              headerStyle: {
-                backgroundColor: '#121212',
-              },
-              headerTintColor: '#FFFFFF',
-              headerTitleStyle: {
-                color: '#FFFFFF',
-              },
-            }}
-          />
-          <Stack.Screen
-            name="security"
-            options={{
-              headerShown: true,
-              headerBackTitle: 'Back',
-              headerStyle: {
-                backgroundColor: '#121212',
-              },
-              headerTintColor: '#FFFFFF',
-              headerTitleStyle: {
-                color: '#FFFFFF',
-              },
-            }}
-          />
-          <Stack.Screen
-            name="help-support"
-            options={{
-              headerShown: true,
-              headerBackTitle: 'Back',
-              headerStyle: {
-                backgroundColor: '#121212',
-              },
-              headerTintColor: '#FFFFFF',
-              headerTitleStyle: {
-                color: '#FFFFFF',
-              },
-            }}
-          />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-        <StatusBar style="light" />
-      </View>
->>>>>>> 511b7396cac74187a96d7f5b881ef293d4ab047f
-    </ThemeProvider>
+    <CustomThemeProvider>
+      <CurrencyProvider>
+        <RootLayoutNav />
+      </CurrencyProvider>
+    </CustomThemeProvider>
+  );
+}
+
+function RootLayoutNav() {
+  const { colors } = useTheme();
+
+  return (
+    <Stack
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: colors.background,
+        },
+        headerTintColor: colors.text,
+        headerTitleStyle: {
+          fontWeight: 'bold',
+          color: colors.text,
+        },
+        contentStyle: {
+          backgroundColor: colors.background,
+        },
+      }}
+    >
+      <Stack.Screen
+        name="(tabs)"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="(auth)"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="profile"
+        options={{
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: '#121212',
+          },
+          headerTintColor: '#FFFFFF',
+          headerTitle: 'Profile',
+          headerTitleStyle: {
+            color: '#FFFFFF',
+          },
+          presentation: 'modal'
+        }}
+      />
+      <Stack.Screen
+        name="change-password"
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_right',
+        }}
+      />
+      <Stack.Screen
+        name="notifications"
+        options={{
+          headerShown: false,
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="security"
+        options={{
+          headerShown: false,
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="help-support"
+        options={{
+          headerShown: false,
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen name="+not-found" />
+    </Stack>
   );
 }
 

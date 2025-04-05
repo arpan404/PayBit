@@ -344,48 +344,42 @@ const SignupScreen = () => {
     );
   };
 
-  const renderActionButtons = () => {
-    if (currentStep === 1) {
-      return (
-        <TouchableOpacity onPress={validateStep1}>
-          <LinearGradient
-            colors={["#F7931A", "#E2761B"]}
-            style={styles.actionButton}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <Text style={styles.actionButtonText}>Next</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      );
-    } else if (currentStep === totalSteps) {
-      return (
-        <View style={styles.finalButtonsContainer}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={goToPreviousStep}
-          >
-            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
-            <Text style={styles.backButtonText}>Back</Text>
-          </TouchableOpacity>
+    const renderActionButtons = () => {
+        if (currentStep === 1) {
+            return (
+                <TouchableOpacity onPress={validateStep1}>
+                    <LinearGradient
+                        colors={['#F7931A', '#000000']}
+                        style={styles.actionButton}
+                        start={{ x: 1, y: 0 }}
+                        end={{ x: 0, y: 1 }}
+                    >
+                        <Text style={styles.actionButtonText}>Next</Text>
+                    </LinearGradient>
+                </TouchableOpacity>
+            );
+        } else if (currentStep === totalSteps) {
+            return (
+                <View style={styles.finalButtonsContainer}>
+                    <TouchableOpacity style={styles.backButton} onPress={goToPreviousStep}>
+                        <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+                        <Text style={styles.backButtonText}>Back</Text>
+                    </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.createAccountButton}
-            onPress={handleCreateAccount}
-          >
-            <LinearGradient
-              colors={["#F7931A", "#E2761B"]}
-              style={styles.actionButton}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <Text style={styles.actionButtonText}>Create Account</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-  };
+                    <TouchableOpacity style={styles.createAccountButton} onPress={handleCreateAccount}>
+                        <LinearGradient
+                            colors={['#F7931A', '#000000']}
+                            style={styles.actionButton}
+                            start={{ x: 1, y: 0 }}
+                            end={{ x: 0, y: 1 }}
+                        >
+                            <Text style={styles.actionButtonText}>Create Account</Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
+                </View>
+            );
+        }
+    };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
