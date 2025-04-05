@@ -1,11 +1,11 @@
-import { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import User from '../../db/user';
+import { Request, Response } from "express";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import User from "../../db/user";
 
 /**
  * User login controller
- * 
+ *
  * @route POST /api/auth/login
  * @access Public
  */
@@ -17,8 +17,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     if (!email || !password) {
       res.status(400).json({
         success: false,
-        code: 'login-e1',
-        message: 'Email and password are required',
+        code: "login-e1",
+        message: "Email and password are required",
       });
       return;
     }
@@ -28,8 +28,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     if (!user) {
       res.status(401).json({
         success: false,
-        code: 'login-e2',
-        message: 'Invalid credentials',
+        code: "login-e2",
+        message: "Invalid credentials",
       });
       return;
     }
@@ -39,8 +39,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     if (!isPasswordValid) {
       res.status(401).json({
         success: false,
-        code: 'login-e3',
-        message: 'Invalid credentials',
+        code: "login-e3",
+        message: "Invalid credentials",
       });
       return;
     }
@@ -50,18 +50,18 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       user: {
         id: user._id,
         uid: user.uid,
-        email: user.email
-      }
+        email: user.email,
+      },
     };
 
     // Get JWT secret from environment variable
     const jwtSecret = process.env.JWT_SECRET;
     if (!jwtSecret) {
-      console.error('JWT_SECRET is not defined');
+      console.error("JWT_SECRET is not defined");
       res.status(500).json({
         success: false,
-        code: 'login-e4',
-        message: 'Server configuration error',
+        code: "login-e4",
+        message: "Server configuration error",
       });
       return;
     }
@@ -70,16 +70,16 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     jwt.sign(
       payload,
       jwtSecret,
-      { 
-        expiresIn: '7d' // Token expires in 7 days
+      {
+        expiresIn: "7d", // Token expires in 7 days
       },
       (err, token) => {
         if (err) {
-          console.error('Token generation error:', err);
+          console.error("Token generation error:", err);
           res.status(500).json({
             success: false,
-            code: 'login-e5',
-            message: 'Error generating authentication token',
+            code: "login-e5",
+            message: "Error generating authentication token",
           });
           return;
         }
@@ -94,20 +94,20 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
         res.status(200).json({
           success: true,
-          message: 'Login successful',
+          message: "Login successful",
           data: {
             user: userData,
-            token
-          }
+            token,
+          },
         });
-      }
+      },
     );
   } catch (error) {
-    console.error('Login error:', error);
+    console.error("Login error:", error);
     res.status(500).json({
       success: false,
-      code: 'login-e6',
-      message: 'Server error during login',
+      code: "login-e6",
+      message: "Server error during login",
     });
   }
 };
