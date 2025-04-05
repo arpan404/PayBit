@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
+import { useRouter } from 'expo-router';
 
 interface ProfileOptionProps {
     icon: keyof typeof Ionicons.glyphMap;
@@ -20,10 +21,10 @@ interface ProfileScreenProps {
 }
 
 const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
+    const router = useRouter();
     const insets = useSafeAreaInsets();
 
     const handleBackPress = () => {
-        // Close the modal
         if (onClose) {
             onClose();
         }
@@ -42,19 +43,19 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
     };
 
     const handleChangePassword = () => {
-        Alert.alert("Change Password", "Password change functionality will be implemented here");
+        router.push('/change-password');
     };
 
     const handleNotificationSettings = () => {
-        Alert.alert("Notifications", "Notification settings will be implemented here");
+        router.push('/notifications');
     };
 
     const handleSecuritySettings = () => {
-        Alert.alert("Security", "Security settings will be implemented here");
+        router.push('/security');
     };
 
     const handleHelpSupport = () => {
-        Alert.alert("Help & Support", "Help and support will be implemented here");
+        router.push('/help-support');
     };
 
     const handleLogout = () => {
@@ -66,8 +67,7 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
                 {
                     text: "Logout",
                     onPress: () => {
-                        // Navigate to login screen
-                        Alert.alert("Logout", "You have been logged out");
+                        router.replace('/(auth)/login');
                     },
                     style: "destructive"
                 }
@@ -91,27 +91,32 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
                 <Ionicons name={icon} size={24} color={tintColor} />
             </View>
             <View style={styles.optionTextContainer}>
-                <Text style={styles.optionTitle}>{title}</Text>
-                {subtitle && <Text style={styles.optionSubtitle}>{subtitle}</Text>}
+                <Text style={styles.optionTitle} numberOfLines={1}>{title}</Text>
+                {subtitle && <Text style={styles.optionSubtitle} numberOfLines={2}>{subtitle}</Text>}
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#AAAAAA" />
+            <View style={styles.rightContainer}>
+                <Ionicons name="chevron-forward" size={20} color="#AAAAAA" />
+            </View>
         </TouchableOpacity>
     );
 
     return (
         <View style={styles.container}>
             <StatusBar style="light" />
+            <View style={[styles.header, { paddingTop: insets.top }]}>
+                <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
+                    <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>Profile</Text>
+                <View style={styles.placeholder} />
+            </View>
 
             <SafeAreaView style={styles.safeArea}>
-                <View style={styles.header}>
-                    <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-                        <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Profile</Text>
-                    <View style={styles.placeholder} />
-                </View>
-
-                <ScrollView contentContainerStyle={styles.content}>
+                <ScrollView
+                    style={styles.scrollContainer}
+                    contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 30 }]}
+                    showsVerticalScrollIndicator={false}
+                >
                     <View style={styles.profileSection}>
                         <View style={styles.avatarSection}>
                             <LinearGradient
@@ -199,8 +204,8 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 16,
-        paddingTop: 10,
         paddingBottom: 20,
+        backgroundColor: '#121212',
     },
     backButton: {
         width: 40,
@@ -212,9 +217,14 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         color: '#FFFFFF',
+        textAlign: 'center',
+        flex: 1,
     },
     placeholder: {
         width: 40,
+    },
+    scrollContainer: {
+        flex: 1,
     },
     content: {
         paddingBottom: 40,
@@ -269,48 +279,62 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         marginHorizontal: 16,
         marginBottom: 16,
-        padding: 16,
         overflow: 'hidden',
+        width: '100%',
     },
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
         color: '#FFFFFF',
         marginBottom: 16,
+        paddingHorizontal: 16,
+        paddingTop: 16,
     },
     option: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 12,
-    },
-    borderBottom: {
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(51, 51, 51, 0.5)',
+        paddingVertical: 16,
+        paddingHorizontal: 16,
+        width: '100%',
     },
     iconContainer: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 16,
     },
     optionTextContainer: {
         flex: 1,
+        marginRight: 8,
+    },
+    rightContainer: {
+        width: 24,
+        height: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginLeft: 'auto',
     },
     optionTitle: {
         fontSize: 16,
-        fontWeight: '500',
+        fontWeight: '600',
         color: '#FFFFFF',
+        marginBottom: 4,
     },
     optionSubtitle: {
         fontSize: 14,
         color: '#AAAAAA',
-        marginTop: 2,
+        lineHeight: 18,
+    },
+    borderBottom: {
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(255, 255, 255, 0.1)',
     },
     logoutButton: {
         marginHorizontal: 16,
         marginTop: 8,
+        marginBottom: 16,
         backgroundColor: 'rgba(255, 59, 48, 0.2)',
         paddingVertical: 16,
         borderRadius: 12,

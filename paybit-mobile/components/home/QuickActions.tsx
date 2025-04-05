@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 
 interface ActionProps {
-    icon: keyof typeof Ionicons.glyphMap;
+    icon: string;
     label: string;
     onPress: () => void;
 }
@@ -24,7 +24,9 @@ const Action = ({ icon, label, onPress }: ActionProps) => (
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
         >
-            <Ionicons name={icon} size={24} color="#fff" />
+
+            <Ionicons name={icon as any} size={24} color="#fff" />
+
         </LinearGradient>
         <Text style={styles.actionText}>{label}</Text>
     </TouchableOpacity>
@@ -34,7 +36,7 @@ const QuickActions = ({ onRequest, onQuickPay, onWallet }: QuickActionsProps) =>
     return (
         <BlurView intensity={20} style={styles.quickActionsContainer}>
             <View style={styles.quickActions}>
-                <Action icon="cash-outline" label="Request" onPress={onRequest} />
+                <Action icon="people-outline" label="Crowdfund" onPress={onRequest} />
                 <Action icon="flash-outline" label="Quick Pay" onPress={onQuickPay} />
                 <Action icon="wallet-outline" label="Wallet" onPress={onWallet} />
             </View>
