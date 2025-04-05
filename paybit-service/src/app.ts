@@ -9,6 +9,7 @@ import userRoutes from "./routes/user";
 import { config } from "dotenv";
 import path from "path";
 import donateRoutes from "./routes/donation";
+import transaction from "./routes/transaction";
 
 // Load environment variables from .env file
 config();
@@ -21,9 +22,8 @@ const logger = winston.createLogger({
     winston.format.splat(),
     winston.format.printf(({ level, message, timestamp, ...meta }) => {
       const requestId = meta.requestId ? ` [${meta.requestId}]` : "";
-      return `${timestamp} ${level.toUpperCase()}${requestId}: ${message} ${
-        Object.keys(meta).length ? JSON.stringify(meta, null, 2) : ""
-      }`;
+      return `${timestamp} ${level.toUpperCase()}${requestId}: ${message} ${Object.keys(meta).length ? JSON.stringify(meta, null, 2) : ""
+        }`;
     }),
   ),
   defaultMeta: { service: "paybit-service" },
@@ -34,11 +34,10 @@ const logger = winston.createLogger({
         winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
         winston.format.printf(({ level, message, timestamp, ...meta }) => {
           const requestId = meta.requestId ? ` [${meta.requestId}]` : "";
-          return `${timestamp} ${level}${requestId}: ${message} ${
-            Object.keys(meta).length && !meta.service
+          return `${timestamp} ${level}${requestId}: ${message} ${Object.keys(meta).length && !meta.service
               ? JSON.stringify(meta, null, 2)
               : ""
-          }`;
+            }`;
         }),
       ),
     }),
@@ -78,6 +77,7 @@ app.use("/api/donation", donateRoutes);
 app.get("/", (_req: Request, res: Response) => {
   res.send("PayBit API is running");
 });
+app.use("/api/transaction", transaction);
 
 app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
   const requestId = req.headers["x-request-id"] as string;

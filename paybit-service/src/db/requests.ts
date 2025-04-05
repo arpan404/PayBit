@@ -5,6 +5,8 @@ export interface IRequest extends Document {
   amount: number;
   senderId: mongoose.Types.ObjectId;
   isResolved: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const RequestSchema: Schema = new Schema(
