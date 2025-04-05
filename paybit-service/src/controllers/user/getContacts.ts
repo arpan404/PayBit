@@ -4,104 +4,101 @@ import Contact from "../../db/contact";
 import User from "../../db/user";
 
 /**
- * Get Contacts Controller
- * Fetches all contacts for the authenticated user with user details
- *
+ * Get all contacts for the authenticated user
  * @route GET /api/user/contacts
- * @access Private (requires auth token)
+ * @access Private
  */
-export const getContacts = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const getContacts = async (req: Request, res: Response) => {
   try {
-    // Ensure user is authenticated
-    if (!req.user || !req.user.id) {
-      res.status(401).json({
-        success: false,
-        code: "contacts-e1",
-        message: "User not authenticated",
-      });
-      return;
-    }
-
+    // Get user ID from the auth middleware
     const userId = req.user.id;
+    const userUid = req.user.uid;
 
-    // Validate userId format
+    // Validate user ID
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      res.status(400).json({
+      return res.status(400).json({
         success: false,
         code: "contacts-e2",
         message: "Invalid user ID format",
       });
-      return;
     }
 
-    // Fetch contacts
-    const contacts = await Contact.find({ userId })
-      .sort({ nickname: 1 }) // Sort by nickname alphabetically
-      .lean();
+    // Find all contacts for this user
+    const contacts = await Contact.find({ userUid });
 
-    if (!contacts || contacts.length === 0) {
-      // No contacts found, return empty array
-      res.status(200).json({
+    // If no contacts found, return empty array
+    if (contacts.length === 0) {
+      return res.status(200).json({
         success: true,
         message: "No contacts found",
-        data: { contacts: [] },
+        data: {
+          contacts: [],
+          count: 0,
+        },
       });
-      return;
     }
 
-    // Extract unique contactUids to fetch user information
-    const contactUids = [
-      ...new Set(contacts.map((contact) => contact.contactUid)),
-    ];
+    // Extract contact UIDs
+    const contactUids = contacts.map((contact) => contact.contactUid);
 
-    // Fetch user details for all contacts in a single query
+    // Get user details for all contacts in a single query
     const contactUsers = await User.find(
       { uid: { $in: contactUids } },
-      { _id: 1, uid: 1, fullname: 1, email: 1, profileImage: 1 },
-    ).lean();
+      { password: 0 } // Exclude password field
+    );
 
-    // Create a map for efficient lookups
+    // Create a map of user info by UID for quick lookup
     const userMap = new Map();
     contactUsers.forEach((user) => {
-      userMap.set(user.uid, user);
+      userMap.set(user.uid, {
+        id: user._id,
+        fullname: user.fullname,
+        email: user.email,
+        profileImage: user.profileImage,
+      });
     });
 
-    // Enrich contact data with user information
-    const enrichedContacts = contacts.map((contact) => {
-      const userInfo = userMap.get(contact.contactUid) || {};
+    // Format the contact list with user details
+    const formattedContacts = contacts.map((contact) => {
+      // Get user info from map or use default "unknown" values
+      const userInfo = userMap.get(contact.contactUid) || {
+        id: null,
+        fullname: "Unknown User",
+        email: "unknown@example.com",
+        profileImage: "",
+      };
 
       return {
-        id: contact._id,
+        id: String(contact._id),
         contactUid: contact.contactUid,
         createdAt: contact.createdAt,
         updatedAt: contact.updatedAt,
         user: {
-          id: userInfo._id || null,
-          fullname: userInfo.fullname || "Unknown User",
-          email: userInfo.email || "unknown@example.com",
-          profileImage: userInfo.profileImage || "",
+          id: userInfo.id,
+          fullname: userInfo.fullname,
+          email: userInfo.email,
+          profileImage: userInfo.profileImage,
         },
       };
     });
 
-    // Return the enriched contacts
-    res.status(200).json({
+    // Return success response with formatted contacts
+    return res.status(200).json({
       success: true,
       message: "Contacts retrieved successfully",
       data: {
-        contacts: enrichedContacts,
-        count: enrichedContacts.length,
+        contacts: formattedContacts,
+        count: formattedContacts.length,
       },
     });
   } catch (error) {
-    console.error("Error fetching contacts:", error);
-    res.status(500).json({
+    console.error("Error in getContacts:", error);
+    return res.status(500).json({
       success: false,
       code: "contacts-e3",
-      message: "Server error fetching contacts",
+      message: "Server error while retrieving contacts",
     });
   }
 };
+
+export default getContacts;

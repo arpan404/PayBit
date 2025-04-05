@@ -9,11 +9,11 @@ declare global {
   }
 }
 
-export const authMiddleware = (
+export const authMiddleware = async(
   req: Request,
   res: Response,
   next: NextFunction,
-): void => {
+): Promise<void> => {
   const token = req.header("x-auth-token");
 
   if (!token) {
