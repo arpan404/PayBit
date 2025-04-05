@@ -9,31 +9,33 @@ import {
 } from "react-native";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 import { useCurrency } from "../../context/CurrencyContext";
 import { useStore, selectUser } from "../../services/store";
 
 interface BalanceCardProps {
     lastUpdated: string;
+    onRefresh?: () => void;
 }
 
 const { width } = Dimensions.get("window");
 
-const BalanceCard = ({ lastUpdated }: BalanceCardProps) => {
+const BalanceCard = ({ lastUpdated, onRefresh }: BalanceCardProps) => {
     const { selectedCurrency } = useCurrency();
     const [currentSlide, setCurrentSlide] = useState(0);
     const slideAnim = useRef(new Animated.Value(0)).current;
     const user = useStore(selectUser);
 
-  const handleSlide = () => {
-    const nextSlide = (currentSlide + 1) % 2;
-    Animated.timing(slideAnim, {
-      toValue: nextSlide,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => {
-      setCurrentSlide(nextSlide);
-    });
-  };
+    const handleSlide = () => {
+        const nextSlide = (currentSlide + 1) % 2;
+        Animated.timing(slideAnim, {
+            toValue: nextSlide,
+            duration: 300,
+            useNativeDriver: true,
+        }).start(() => {
+            setCurrentSlide(nextSlide);
+        });
+    };
 
     return (
         <TouchableOpacity onPress={handleSlide} activeOpacity={0.9}>
@@ -106,7 +108,15 @@ const BalanceCard = ({ lastUpdated }: BalanceCardProps) => {
                         ))}
                     </View>
                 </LinearGradient>
-                <Text style={styles.lastUpdated}>Last updated: {lastUpdated}</Text>
+                <View style={styles.lastUpdatedContainer}>
+                    <Ionicons name="time-outline" size={14} color="rgba(255, 255, 255, 0.6)" style={styles.timeIcon} />
+                    <Text style={styles.lastUpdated}>{lastUpdated}</Text>
+                    {onRefresh && (
+                        <TouchableOpacity onPress={onRefresh} style={styles.refreshButton}>
+                            <Ionicons name="refresh" size={16} color="rgba(255, 255, 255, 0.6)" />
+                        </TouchableOpacity>
+                    )}
+                </View>
             </BlurView>
         </TouchableOpacity>
     );
@@ -214,12 +224,24 @@ const styles = StyleSheet.create({
     activeIndicator: {
         backgroundColor: "#FFFFFF",
     },
+    lastUpdatedContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 8,
+    },
+    timeIcon: {
+        marginRight: 4,
+    },
     lastUpdated: {
         fontSize: 12,
         color: "#FFFFFF",
         opacity: 0.6,
         textAlign: "center",
-        marginTop: 8,
+    },
+    refreshButton: {
+        marginLeft: 6,
+        padding: 4,
     },
 });
 
