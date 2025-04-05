@@ -4,11 +4,12 @@ import helmet from "helmet";
 import winston from "winston";
 import { v4 as uuidv4 } from "uuid";
 import connectDB from "./db/connect";
-import authRoutes from "./routes/auth"
+import authRoutes from "./routes/auth";
 import userRoutes from "./routes/user";
 import { config } from "dotenv";
 import path from "path";
 import donateRoutes from "./routes/donation";
+import transaction from "./routes/transaction";
 
 // Load environment variables from .env file
 config();
@@ -78,6 +79,7 @@ app.use("/api/donation", donateRoutes);
 app.get("/", (_req: Request, res: Response) => {
   res.send("PayBit API is running");
 });
+app.use("/api/transaction", transaction);
 
 app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
   const requestId = req.headers["x-request-id"] as string;

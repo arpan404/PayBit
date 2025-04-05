@@ -15,25 +15,25 @@ const ChangePasswordScreen = () => {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
-    const handleBackPress = () => {
-        router.back();
-    };
+  const handleBackPress = () => {
+    router.back();
+  };
 
-    const handleChangePassword = () => {
-        if (!currentPassword || !newPassword || !confirmPassword) {
-            Alert.alert('Error', 'Please fill in all fields');
-            return;
-        }
+  const handleChangePassword = () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
 
-        if (newPassword !== confirmPassword) {
-            Alert.alert('Error', 'New passwords do not match');
-            return;
-        }
+    if (newPassword !== confirmPassword) {
+      Alert.alert("Error", "New passwords do not match");
+      return;
+    }
 
-        if (newPassword.length < 8) {
-            Alert.alert('Error', 'Password must be at least 8 characters long');
-            return;
-        }
+    if (newPassword.length < 8) {
+      Alert.alert("Error", "Password must be at least 8 characters long");
+      return;
+    }
 
         Alert.alert('Success', 'Password changed successfully');
         router.back();
@@ -179,4 +179,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default ChangePasswordScreen; 
+export default ChangePasswordScreen;

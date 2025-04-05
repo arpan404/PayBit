@@ -18,16 +18,16 @@ const SecurityScreen = () => {
         transactionConfirmation: true,
     });
 
-    const handleBackPress = () => {
-        router.back();
-    };
+  const handleBackPress = () => {
+    router.back();
+  };
 
-    const toggleSetting = (key: keyof typeof settings) => {
-        setSettings(prev => ({
-            ...prev,
-            [key]: !prev[key]
-        }));
-    };
+  const toggleSetting = (key: keyof typeof settings) => {
+    setSettings((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
 
     const SecurityOption = ({
         icon,
@@ -205,4 +205,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default SecurityScreen; 
+export default SecurityScreen;

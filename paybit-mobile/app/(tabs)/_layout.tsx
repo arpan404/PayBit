@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { Ionicons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
+=======
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -50,6 +55,7 @@ export default function TabLayout() {
           shadowOpacity: 0.1,
           shadowRadius: 8,
           elevation: 8
+>>>>>>> 511b7396cac74187a96d7f5b881ef293d4ab047f
         },
         tabBarShowLabel: false,
         headerShown: false,
@@ -61,12 +67,25 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
+<<<<<<< HEAD
+          title: "Home",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home" size={size} color={color} />
+          ),
+=======
           tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size + 2} color={color} />,
+>>>>>>> 511b7396cac74187a96d7f5b881ef293d4ab047f
         }}
       />
       <Tabs.Screen
         name="send-receive"
         options={{
+<<<<<<< HEAD
+          title: "Profile",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person" size={size} color={color} />
+          ),
+=======
           tabBarIcon: ({ color, size }) => <Ionicons name="swap-vertical" size={size + 2} color={color} />,
         }}
       />
@@ -86,6 +105,7 @@ export default function TabLayout() {
         name="settings"
         options={{
           tabBarIcon: ({ color, size }) => <Ionicons name="settings-outline" size={size + 2} color={color} />,
+>>>>>>> 511b7396cac74187a96d7f5b881ef293d4ab047f
         }}
       />
     </Tabs>

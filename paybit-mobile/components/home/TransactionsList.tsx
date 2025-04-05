@@ -13,9 +13,9 @@ interface Transaction {
 }
 
 interface TransactionsListProps {
-    transactions: Transaction[];
-    onSeeAllPress: () => void;
-    onTransactionPress: (transaction: Transaction) => void;
+  transactions: Transaction[];
+  onSeeAllPress: () => void;
+  onTransactionPress: (transaction: Transaction) => void;
 }
 
 const TransactionItem: React.FC<{ transaction: Transaction; onPress: () => void }> = ({ transaction, onPress }) => {
@@ -169,4 +169,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default TransactionsList; 
+export default TransactionsList;

@@ -111,7 +111,7 @@ const HomeScreen = () => {
   };
 
   const handleWallet = () => {
-    Alert.alert('Wallet', 'Access your wallet options');
+    Alert.alert("Wallet", "Access your wallet options");
   };
 
   const handleSeeAllTransactions = () => {
@@ -286,4 +286,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomeScreen; 
+export default HomeScreen;

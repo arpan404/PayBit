@@ -252,14 +252,22 @@ const TransactionsScreen = (): React.ReactElement => {
                     </Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity
-                    style={[styles.filterTab, activeFilter === 'sent' && styles.activeFilterTab]}
-                    onPress={() => setActiveFilter('sent')}
-                >
-                    <Text style={[styles.filterText, activeFilter === 'sent' && styles.activeFilterText]}>
-                        Sent
-                    </Text>
-                </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.filterTab,
+            activeFilter === "sent" && styles.activeFilterTab,
+          ]}
+          onPress={() => setActiveFilter("sent")}
+        >
+          <Text
+            style={[
+              styles.filterText,
+              activeFilter === "sent" && styles.activeFilterText,
+            ]}
+          >
+            Sent
+          </Text>
+        </TouchableOpacity>
 
                 <TouchableOpacity
                     style={[styles.filterTab, activeFilter === 'received' && styles.activeFilterTab]}

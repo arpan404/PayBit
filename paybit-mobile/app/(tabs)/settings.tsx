@@ -18,25 +18,25 @@ const SettingsScreen = () => {
     const [pushNotifications, setPushNotifications] = React.useState(true);
     const [showCurrencySelector, setShowCurrencySelector] = React.useState(false);
 
-    const handleLanguage = () => {
-        // TODO: Implement language selection
-    };
+  const handleLanguage = () => {
+    // TODO: Implement language selection
+  };
 
     const handleCurrency = () => {
         setShowCurrencySelector(true);
     };
 
-    const handleAppearance = () => {
-        // TODO: Implement appearance settings
-    };
+  const handleAppearance = () => {
+    // TODO: Implement appearance settings
+  };
 
-    const handlePrivacy = () => {
-        // TODO: Implement privacy settings
-    };
+  const handlePrivacy = () => {
+    // TODO: Implement privacy settings
+  };
 
-    const handleAbout = () => {
-        // TODO: Implement about screen
-    };
+  const handleAbout = () => {
+    // TODO: Implement about screen
+  };
 
     const handlePushNotificationsToggle = () => {
         setPushNotifications(prev => !prev);
@@ -241,4 +241,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default SettingsScreen; 
+export default SettingsScreen;

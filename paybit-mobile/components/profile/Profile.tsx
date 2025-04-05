@@ -1,3 +1,22 @@
+<<<<<<< HEAD:paybit-mobile/components/Profile.tsx
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+} from "react-native";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
+=======
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,20 +31,33 @@ import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 
 interface ProfileOptionProps {
-    icon: keyof typeof Ionicons.glyphMap;
-    title: string;
-    subtitle?: string;
-    onPress: () => void;
-    showBorder?: boolean;
-    tintColor?: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  subtitle?: string;
+  onPress: () => void;
+  showBorder?: boolean;
+  tintColor?: string;
 }
 
 interface ProfileScreenProps {
-    onClose?: () => void;
+  onClose?: () => void;
 }
 
 const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
+<<<<<<< HEAD
     const userData = useStore((state) => state.user);
+=======
+<<<<<<< HEAD:paybit-mobile/components/Profile.tsx
+  const insets = useSafeAreaInsets();
+
+  const handleBackPress = () => {
+    // Close the modal
+    if (onClose) {
+      onClose();
+    }
+  };
+=======
+>>>>>>> 13849a4761feab36dad1276e60b3313c529e2e9e
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const { colors, isDarkMode } = useTheme();
@@ -35,7 +67,9 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
             onClose();
         }
     };
+>>>>>>> 511b7396cac74187a96d7f5b881ef293d4ab047f:paybit-mobile/components/profile/Profile.tsx
 
+<<<<<<< HEAD
     const handleTakePhoto = async () => {
         try {
             const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -97,7 +131,22 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
             ]
         );
     };
+=======
+  const handleChangePhoto = () => {
+    Alert.alert("Change Profile Photo", "Choose an option", [
+      { text: "Take Photo", onPress: () => console.log("Camera") },
+      { text: "Choose from Gallery", onPress: () => console.log("Gallery") },
+      { text: "Cancel", style: "cancel" },
+    ]);
+  };
+>>>>>>> 13849a4761feab36dad1276e60b3313c529e2e9e
 
+<<<<<<< HEAD:paybit-mobile/components/Profile.tsx
+  const handleChangePassword = () => {
+    Alert.alert(
+      "Change Password",
+      "Password change functionality will be implemented here",
+=======
     const handleChangePassword = () => {
         onClose?.();
         router.push('/change-password');
@@ -158,8 +207,26 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
                 <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
             </View>
         </TouchableOpacity>
+>>>>>>> 511b7396cac74187a96d7f5b881ef293d4ab047f:paybit-mobile/components/profile/Profile.tsx
     );
+  };
 
+<<<<<<< HEAD:paybit-mobile/components/Profile.tsx
+  const handleNotificationSettings = () => {
+    Alert.alert(
+      "Notifications",
+      "Notification settings will be implemented here",
+    );
+  };
+
+  const handleSecuritySettings = () => {
+    Alert.alert("Security", "Security settings will be implemented here");
+  };
+
+  const handleHelpSupport = () => {
+    Alert.alert("Help & Support", "Help and support will be implemented here");
+  };
+=======
     return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>
             <StatusBar style={isDarkMode ? "light" : "dark"} />
@@ -202,49 +269,49 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
                     <BlurView intensity={20} tint={isDarkMode ? "dark" : "light"} style={[styles.optionsSection, { backgroundColor: colors.card }]}>
                         <Text style={[styles.sectionTitle, { color: colors.text }]}>Account Settings</Text>
 
-                        <ProfileOption
-                            icon="camera"
-                            title="Change Profile Photo"
-                            onPress={handleChangePhoto}
-                        />
+            <ProfileOption
+              icon="camera"
+              title="Change Profile Photo"
+              onPress={handleChangePhoto}
+            />
 
-                        <ProfileOption
-                            icon="key"
-                            title="Change Password"
-                            onPress={handleChangePassword}
-                        />
+            <ProfileOption
+              icon="key"
+              title="Change Password"
+              onPress={handleChangePassword}
+            />
 
-                        <ProfileOption
-                            icon="notifications"
-                            title="Notifications"
-                            subtitle="Manage your notification preferences"
-                            onPress={handleNotificationSettings}
-                            showBorder={false}
-                        />
-                    </BlurView>
+            <ProfileOption
+              icon="notifications"
+              title="Notifications"
+              subtitle="Manage your notification preferences"
+              onPress={handleNotificationSettings}
+              showBorder={false}
+            />
+          </BlurView>
 
                     <BlurView intensity={20} tint={isDarkMode ? "dark" : "light"} style={[styles.optionsSection, { backgroundColor: colors.card }]}>
                         <Text style={[styles.sectionTitle, { color: colors.text }]}>Security</Text>
 
-                        <ProfileOption
-                            icon="shield-checkmark"
-                            title="Security Settings"
-                            subtitle="Manage your security preferences"
-                            onPress={handleSecuritySettings}
-                            showBorder={false}
-                        />
-                    </BlurView>
+            <ProfileOption
+              icon="shield-checkmark"
+              title="Security Settings"
+              subtitle="Manage your security preferences"
+              onPress={handleSecuritySettings}
+              showBorder={false}
+            />
+          </BlurView>
 
                     <BlurView intensity={20} tint={isDarkMode ? "dark" : "light"} style={[styles.optionsSection, { backgroundColor: colors.card }]}>
                         <Text style={[styles.sectionTitle, { color: colors.text }]}>Support</Text>
 
-                        <ProfileOption
-                            icon="help-circle"
-                            title="Help & Support"
-                            onPress={handleHelpSupport}
-                            showBorder={false}
-                        />
-                    </BlurView>
+            <ProfileOption
+              icon="help-circle"
+              title="Help & Support"
+              onPress={handleHelpSupport}
+              showBorder={false}
+            />
+          </BlurView>
 
                     <TouchableOpacity
                         style={[styles.logoutButton, { backgroundColor: `${colors.error}20` }]}
@@ -259,6 +326,142 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
 };
 
 const styles = StyleSheet.create({
+<<<<<<< HEAD:paybit-mobile/components/Profile.tsx
+  container: {
+    flex: 1,
+    backgroundColor: "#121212",
+  },
+  safeArea: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 20,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+  },
+  placeholder: {
+    width: 40,
+  },
+  content: {
+    paddingBottom: 40,
+  },
+  profileSection: {
+    alignItems: "center",
+    paddingVertical: 30,
+  },
+  avatarSection: {
+    position: "relative",
+    marginBottom: 16,
+  },
+  profileImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 3,
+    borderColor: "#F7931A",
+  },
+  avatarText: {
+    fontSize: 60,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+  },
+  editButton: {
+    position: "absolute",
+    right: 0,
+    bottom: 0,
+    backgroundColor: "#F7931A",
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 3,
+    borderColor: "#121212",
+  },
+  userName: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    marginBottom: 4,
+  },
+  userEmail: {
+    fontSize: 16,
+    color: "#AAAAAA",
+  },
+  optionsSection: {
+    backgroundColor: "rgba(26, 26, 26, 0.7)",
+    borderRadius: 16,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    padding: 16,
+    overflow: "hidden",
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    marginBottom: 16,
+  },
+  option: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+  },
+  borderBottom: {
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(51, 51, 51, 0.5)",
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 16,
+  },
+  optionTextContainer: {
+    flex: 1,
+  },
+  optionTitle: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#FFFFFF",
+  },
+  optionSubtitle: {
+    fontSize: 14,
+    color: "#AAAAAA",
+    marginTop: 2,
+  },
+  logoutButton: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    backgroundColor: "rgba(255, 59, 48, 0.2)",
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  logoutText: {
+    color: "#FF3B30",
+    fontSize: 18,
+    fontWeight: "600",
+  },
+=======
     container: {
         flex: 1,
     },
@@ -403,6 +606,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '600',
     },
+<<<<<<< HEAD
     initialsText: {
         fontSize: 60,
         fontWeight: 'bold',
@@ -411,3 +615,9 @@ const styles = StyleSheet.create({
 });
 
 export default ProfileScreen;
+=======
+>>>>>>> 511b7396cac74187a96d7f5b881ef293d4ab047f:paybit-mobile/components/profile/Profile.tsx
+});
+
+export default ProfileScreen;
+>>>>>>> 13849a4761feab36dad1276e60b3313c529e2e9e

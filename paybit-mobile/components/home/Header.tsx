@@ -3,9 +3,9 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
 
 interface HeaderProps {
-    userName: string;
-    userImage?: string;
-    onProfilePress: () => void;
+  userName: string;
+  userImage?: string;
+  onProfilePress: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ userName, onProfilePress }) => {
@@ -36,4 +36,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Header; 
+export default Header;

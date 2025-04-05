@@ -15,42 +15,42 @@ const SendReceiveScreen = () => {
     const [address, setAddress] = useState('');
     const [note, setNote] = useState('');
 
-    const handleSend = () => {
-        if (!amount || !address) {
-            Alert.alert('Error', 'Please enter both amount and address');
-            return;
-        }
+  const handleSend = () => {
+    if (!amount || !address) {
+      Alert.alert("Error", "Please enter both amount and address");
+      return;
+    }
 
-        Alert.alert(
-            'Confirm Transaction',
-            `Are you sure you want to send ${amount} BTC to ${address}?`,
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Confirm',
-                    onPress: () => {
-                        Alert.alert('Success', 'Transaction initiated!');
-                        setAmount('');
-                        setAddress('');
-                        setNote('');
-                    }
-                }
-            ]
-        );
-    };
+    Alert.alert(
+      "Confirm Transaction",
+      `Are you sure you want to send ${amount} BTC to ${address}?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Confirm",
+          onPress: () => {
+            Alert.alert("Success", "Transaction initiated!");
+            setAmount("");
+            setAddress("");
+            setNote("");
+          },
+        },
+      ],
+    );
+  };
 
-    const handleRequest = () => {
-        if (!amount) {
-            Alert.alert('Error', 'Please enter an amount');
-            return;
-        }
+  const handleRequest = () => {
+    if (!amount) {
+      Alert.alert("Error", "Please enter an amount");
+      return;
+    }
 
-        Alert.alert(
-            'Request Created',
-            `A request for ${amount} BTC has been created. Share your address with the sender.`,
-            [{ text: 'OK' }]
-        );
-    };
+    Alert.alert(
+      "Request Created",
+      `A request for ${amount} BTC has been created. Share your address with the sender.`,
+      [{ text: "OK" }],
+    );
+  };
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -68,13 +68,20 @@ const SendReceiveScreen = () => {
                     <Text style={[styles.tabText, activeTab === 'send' && styles.activeTabText]}>Send</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity
-                    style={[styles.tab, activeTab === 'request' && styles.activeTab]}
-                    onPress={() => setActiveTab('request')}
-                >
-                    <Text style={[styles.tabText, activeTab === 'request' && styles.activeTabText]}>Request</Text>
-                </TouchableOpacity>
-            </View>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === "request" && styles.activeTab]}
+          onPress={() => setActiveTab("request")}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "request" && styles.activeTabText,
+            ]}
+          >
+            Request
+          </Text>
+        </TouchableOpacity>
+      </View>
 
             <ScrollView
                 style={styles.contentContainer}
@@ -312,4 +319,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default SendReceiveScreen; 
+export default SendReceiveScreen;

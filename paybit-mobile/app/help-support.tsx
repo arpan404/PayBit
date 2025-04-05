@@ -12,13 +12,13 @@ const HelpSupportScreen = () => {
     const insets = useSafeAreaInsets();
     const { colors, isDarkMode } = useTheme();
 
-    const handleBackPress = () => {
-        router.back();
-    };
+  const handleBackPress = () => {
+    router.back();
+  };
 
-    const handleContactSupport = () => {
-        Linking.openURL('mailto:support@paybit.com');
-    };
+  const handleContactSupport = () => {
+    Linking.openURL("mailto:support@paybit.com");
+  };
 
     const handleFAQ = () => {
         Alert.alert('Coming Soon', 'FAQ section will be available soon');
@@ -208,4 +208,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default HelpSupportScreen; 
+export default HelpSupportScreen;

@@ -19,16 +19,16 @@ const NotificationsScreen = () => {
         marketingEmails: false,
     });
 
-    const handleBackPress = () => {
-        router.back();
-    };
+  const handleBackPress = () => {
+    router.back();
+  };
 
-    const toggleSetting = (key: keyof typeof settings) => {
-        setSettings(prev => ({
-            ...prev,
-            [key]: !prev[key]
-        }));
-    };
+  const toggleSetting = (key: keyof typeof settings) => {
+    setSettings((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
 
     const NotificationOption = ({
         icon,
@@ -217,4 +217,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default NotificationsScreen; 
+export default NotificationsScreen;

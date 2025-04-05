@@ -1,3 +1,15 @@
+<<<<<<< HEAD:paybit-mobile/components/homescreen/QuickActions.tsx
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
+
+interface ActionProps {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  onPress: () => void;
+=======
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -36,6 +48,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({ onCrowdFund, onQuickPay, on
             </TouchableOpacity>
         </View>
     );
+>>>>>>> 511b7396cac74187a96d7f5b881ef293d4ab047f:paybit-mobile/components/home/QuickActions.tsx
 };
 
 const styles = StyleSheet.create({
@@ -68,4 +81,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default QuickActions; 
+export default QuickActions;

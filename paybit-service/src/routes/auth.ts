@@ -11,7 +11,7 @@ router.post("/signup", signup);
 router.post("/login", login);
 router.post("/auto-login", authMiddleware, autoLogin);
 router.post("/change-password", authMiddleware, async (req, res) => {
-    await changePassword(req, res);
+  await changePassword(req, res);
 });
 
 export default router;

@@ -128,4 +128,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default ScanScreen; 
+export default ScanScreen;

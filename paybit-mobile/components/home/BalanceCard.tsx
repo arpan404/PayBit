@@ -24,16 +24,16 @@ const BalanceCard = ({ lastUpdated }: BalanceCardProps) => {
     const slideAnim = useRef(new Animated.Value(0)).current;
     const user = useStore(selectUser);
 
-    const handleSlide = () => {
-        const nextSlide = (currentSlide + 1) % 2;
-        Animated.timing(slideAnim, {
-            toValue: nextSlide,
-            duration: 300,
-            useNativeDriver: true,
-        }).start(() => {
-            setCurrentSlide(nextSlide);
-        });
-    };
+  const handleSlide = () => {
+    const nextSlide = (currentSlide + 1) % 2;
+    Animated.timing(slideAnim, {
+      toValue: nextSlide,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      setCurrentSlide(nextSlide);
+    });
+  };
 
     return (
         <TouchableOpacity onPress={handleSlide} activeOpacity={0.9}>

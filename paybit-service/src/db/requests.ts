@@ -1,22 +1,27 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IRequest extends Document {
-    requesterId: mongoose.Types.ObjectId;
-    amount: number;
-    senderId: mongoose.Types.ObjectId;
-    isResolved: boolean;
+  requesterId: mongoose.Types.ObjectId;
+  amount: number;
+  senderId: mongoose.Types.ObjectId;
+  isResolved: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const RequestSchema: Schema = new Schema(
-    {
-        requesterId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-        amount: { type: Number, required: true },
-        senderId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-        isResolved: { type: Boolean, default: false },
-    },
-    { timestamps: true }
+  {
+    requesterId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    amount: { type: Number, required: true },
+    senderId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    isResolved: { type: Boolean, default: false },
+  },
+  { timestamps: true },
 );
 
-const Request: Model<IRequest> = mongoose.model<IRequest>('Request', RequestSchema);
+const Request: Model<IRequest> = mongoose.model<IRequest>(
+  "Request",
+  RequestSchema,
+);
 
 export default Request;

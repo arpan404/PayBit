@@ -6,7 +6,6 @@ import createCampaign from "../controllers/donation/createCampaign";
 import updateCampaign from "../controllers/donation/update";
 import { fetchCampaign } from "../controllers/donation/fetchCampaign";
 
-
 const router = Router();
 
 router.post("/donate/:id", authMiddleware, donate);
