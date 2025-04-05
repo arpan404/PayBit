@@ -3,7 +3,6 @@ import path from 'path';
 import fs from 'fs';
 import User from '../../db/user';
 
-// PUT /api/user/profile - Update profile details
 export const changeProfile = async (req: Request, res: Response): Promise<void> => {
     try {
         // Check authentication

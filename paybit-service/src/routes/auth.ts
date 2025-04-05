@@ -7,14 +7,9 @@ import autoLogin from "../controllers/auth/autoLogin";
 
 const router = Router();
 
-// POST /api/auth/signup
 router.post("/signup", signup);
-
-// POST /api/auth/login
 router.post("/login", login);
-
 router.post("/auto-login", authMiddleware, autoLogin);
-
 router.post("/forget-password", authMiddleware, async (req, res) => {
     await forgetPassword(req, res);
 });
