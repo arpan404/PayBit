@@ -4,21 +4,21 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
 
 interface QuickActionsProps {
-    onRequest: () => void;
+    onCrowdFund: () => void;
     onQuickPay: () => void;
     onWallet: () => void;
 }
 
-const QuickActions: React.FC<QuickActionsProps> = ({ onRequest, onQuickPay, onWallet }) => {
+const QuickActions: React.FC<QuickActionsProps> = ({ onCrowdFund, onQuickPay, onWallet }) => {
     const { colors } = useTheme();
 
     return (
         <View style={[styles.container, { backgroundColor: colors.card }]}>
-            <TouchableOpacity style={styles.actionButton} onPress={onRequest}>
+            <TouchableOpacity style={styles.actionButton} onPress={onCrowdFund}>
                 <View style={[styles.iconContainer, { backgroundColor: 'rgba(247, 147, 26, 0.1)' }]}>
-                    <Ionicons name="arrow-down" size={24} color="#F7931A" />
+                    <Ionicons name="people" size={24} color="#F7931A" />
                 </View>
-                <Text style={[styles.actionText, { color: colors.text }]}>Request</Text>
+                <Text style={[styles.actionText, { color: colors.text }]}>CrowdFund</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionButton} onPress={onQuickPay}>

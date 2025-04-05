@@ -9,16 +9,22 @@ import {
 } from "react-native";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
+import { useCurrency } from "../../context/CurrencyContext";
 
 interface BalanceCardProps {
     balance: number;
     fiatValue: number;
     lastUpdated: string;
+    btcPrice: {
+        USD: number;
+        EUR: number;
+    };
 }
 
 const { width } = Dimensions.get("window");
 
-const BalanceCard = ({ balance, fiatValue, lastUpdated }: BalanceCardProps) => {
+const BalanceCard = ({ balance, fiatValue, lastUpdated, btcPrice }: BalanceCardProps) => {
+    const { selectedCurrency } = useCurrency();
     const [currentSlide, setCurrentSlide] = useState(0);
     const slideAnim = useRef(new Animated.Value(0)).current;
 
@@ -65,8 +71,10 @@ const BalanceCard = ({ balance, fiatValue, lastUpdated }: BalanceCardProps) => {
                                     <Text style={styles.currencyLabel}>BTC</Text>
                                 </View>
                                 <View style={styles.fiatRow}>
-                                    <Text style={styles.fiatValue}>${fiatValue.toFixed(2)}</Text>
-                                    <Text style={styles.currencyLabel}>USD</Text>
+                                    <Text style={styles.fiatValue}>
+                                        {selectedCurrency.symbol}{(balance * btcPrice[selectedCurrency.code as keyof typeof btcPrice]).toFixed(2)}
+                                    </Text>
+                                    <Text style={styles.currencyLabel}>{selectedCurrency.code}</Text>
                                 </View>
                             </View>
                         </View>
@@ -77,13 +85,13 @@ const BalanceCard = ({ balance, fiatValue, lastUpdated }: BalanceCardProps) => {
                                     <View style={styles.rateRow}>
                                         <Text style={styles.rateLabel}>BTC/USD</Text>
                                         <Text style={styles.rateValue}>
-                                            ${(fiatValue / balance).toFixed(2)}
+                                            ${btcPrice.USD.toFixed(2)}
                                         </Text>
                                     </View>
                                     <View style={styles.rateRow}>
                                         <Text style={styles.rateLabel}>BTC/EUR</Text>
                                         <Text style={styles.rateValue}>
-                                            €{((fiatValue / balance) * 0.92).toFixed(2)}
+                                            €{btcPrice.EUR.toFixed(2)}
                                         </Text>
                                     </View>
                                 </View>

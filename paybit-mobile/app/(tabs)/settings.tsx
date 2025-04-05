@@ -6,20 +6,24 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../context/ThemeContext';
+import { useCurrency } from '../../context/CurrencyContext';
+import CurrencySelector from '../../components/CurrencySelector';
 
 const SettingsScreen = () => {
     const insets = useSafeAreaInsets();
     const router = useRouter();
     const { isDarkMode, toggleTheme, colors } = useTheme();
+    const { selectedCurrency } = useCurrency();
     const [biometricAuth, setBiometricAuth] = React.useState(false);
     const [pushNotifications, setPushNotifications] = React.useState(true);
+    const [showCurrencySelector, setShowCurrencySelector] = React.useState(false);
 
     const handleLanguage = () => {
         // TODO: Implement language selection
     };
 
     const handleCurrency = () => {
-        // TODO: Implement currency selection
+        setShowCurrencySelector(true);
     };
 
     const handleAppearance = () => {
@@ -71,7 +75,7 @@ const SettingsScreen = () => {
                     <SettingsOption
                         icon="cash"
                         title="Currency"
-                        subtitle="USD"
+                        subtitle={`${selectedCurrency.code} (${selectedCurrency.symbol})`}
                         onPress={handleCurrency}
                     />
                     <SettingsOption
@@ -118,6 +122,11 @@ const SettingsScreen = () => {
                     />
                 </BlurView>
             </ScrollView>
+
+            <CurrencySelector
+                visible={showCurrencySelector}
+                onClose={() => setShowCurrencySelector(false)}
+            />
         </SafeAreaView>
     );
 };

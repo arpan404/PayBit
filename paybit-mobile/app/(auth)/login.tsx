@@ -132,7 +132,10 @@ const LoginScreen = () => {
                         </View>
                         {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
 
-                        <TouchableOpacity style={styles.forgotPassword}>
+                        <TouchableOpacity
+                            style={styles.forgotPassword}
+                            onPress={() => alert("Think Harder")}
+                        >
                             <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
                         </TouchableOpacity>
 
@@ -154,13 +157,18 @@ const LoginScreen = () => {
                         </View>
 
                         <View style={styles.socialContainer}>
-                            <TouchableOpacity style={styles.socialButton}>
+                            <TouchableOpacity
+                                onPress={() => alert("Implemented soon!")}
+                                style={styles.socialButton}>
                                 <Ionicons name="logo-google" size={24} color="#FFFFFF" />
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.socialButton}>
+                            <TouchableOpacity
+                                onPress={() => alert("Implemented soon!")} style={styles.socialButton}>
                                 <Ionicons name="logo-apple" size={24} color="#FFFFFF" />
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.socialButton}>
+                            <TouchableOpacity
+                                onPress={() => alert("Implemented soon!")}
+                                style={styles.socialButton}>
                                 <Ionicons name="logo-facebook" size={24} color="#FFFFFF" />
                             </TouchableOpacity>
                         </View>

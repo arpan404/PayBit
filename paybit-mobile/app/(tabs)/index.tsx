@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Alert, Modal, TouchableOpacity, FlatList, Image, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -49,6 +49,30 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
 
   const [balance, setBalance] = useState('0.025');
   const [fiatValue, setFiatValue] = useState('1232.50');
+  const [btcPrice, setBtcPrice] = useState({
+    USD: 49300,
+    EUR: 45356
+  });
+
+  useEffect(() => {
+    const fetchBitcoinPrice = async () => {
+      try {
+        const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,eur');
+        const data = await response.json();
+        setBtcPrice({
+          USD: data.bitcoin.usd,
+          EUR: data.bitcoin.eur
+        });
+      } catch (error) {
+        console.error('Error fetching Bitcoin price:', error);
+      }
+    };
+
+    fetchBitcoinPrice();
+    const interval = setInterval(fetchBitcoinPrice, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, []);
 
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([
     {
@@ -85,12 +109,12 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
     setShowSettings(true);
   };
 
-  const handleRequest = () => {
-    Alert.alert('Request', 'Request Bitcoin from a contact');
+  const handleCrowdFund = () => {
+    router.push('/crowdfund');
   };
 
   const handleQuickPay = () => {
-    Alert.alert('Quick Pay', 'Make a fast payment to a recent contact');
+    router.push('/quickpay');
   };
 
   const handleWallet = () => {
@@ -137,12 +161,13 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
       balance={parseFloat(balance)}
       fiatValue={parseFloat(fiatValue)}
       lastUpdated="2 minutes ago"
+      btcPrice={btcPrice}
     />
   );
 
   const renderQuickActions = () => (
     <QuickActions
-      onRequest={handleRequest}
+      onCrowdFund={handleCrowdFund}
       onQuickPay={handleQuickPay}
       onWallet={handleWallet}
     />

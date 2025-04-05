@@ -114,6 +114,27 @@ function RootLayoutNav() {
           presentation: 'card',
         }}
       />
+      <Stack.Screen
+        name="crowdfund"
+        options={{
+          headerShown: false,
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="quickpay"
+        options={{
+          headerShown: false,
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="receive"
+        options={{
+          headerShown: false,
+          presentation: 'card',
+        }}
+      />
       <Stack.Screen name="+not-found" />
     </Stack>
   );
