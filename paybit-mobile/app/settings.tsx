@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { useCurrency } from '../context/CurrencyContext';
 import CurrencySelector from '../components/CurrencySelector';
+import { StatusBar } from 'expo-status-bar';
 
 const SettingsScreen = () => {
-    const { colors } = useTheme();
+    const { colors, isDarkMode } = useTheme();
     const { selectedCurrency } = useCurrency();
     const [showCurrencySelector, setShowCurrencySelector] = useState(false);
 
     return (
-        <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+            <StatusBar style={isDarkMode ? "light" : "dark"} />
             <View style={[styles.section, { backgroundColor: colors.card }]}>
                 <TouchableOpacity
                     style={styles.option}
@@ -27,7 +29,7 @@ const SettingsScreen = () => {
                 visible={showCurrencySelector}
                 onClose={() => setShowCurrencySelector(false)}
             />
-        </View>
+        </SafeAreaView>
     );
 };
 

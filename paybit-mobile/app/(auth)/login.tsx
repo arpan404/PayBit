@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Alert,
-  ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -21,6 +21,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useStore } from '../../services/store';
 import axios from 'axios';
 import { apiEndpoint } from '@/constants/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LoginScreen = () => {
   const insets = useSafeAreaInsets();
@@ -30,7 +31,89 @@ const LoginScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isFromLogout, setIsFromLogout] = useState(false);
+
+  const user = useStore((state) => state.user);
   const setUser = useStore((state) => state.setUser);
+
+  // Check for existing token and auto-login
+  useEffect(() => {
+    const checkExistingToken = async () => {
+      try {
+        // First check for the force logout flag - this overrides everything
+        const forceLogoutFlag = await AsyncStorage.getItem('paybit-FORCE-LOGOUT');
+
+        if (forceLogoutFlag === 'true') {
+          console.log('Force logout flag detected, preventing auto-login');
+
+          // Clear the flag
+          await AsyncStorage.removeItem('paybit-FORCE-LOGOUT');
+
+          // Make sure we clear any other storage that might persist
+          await AsyncStorage.removeItem('paybit-storage');
+          await AsyncStorage.removeItem('paybit-logout-flag');
+
+          // Reset user state
+          setUser({
+            token: '',
+            userID: '',
+            userUID: '',
+            userFullName: '',
+            userProfileImage: undefined,
+            balance: '',
+            btcToUsd: 0,
+            btcToEur: 0,
+            userEmail: '',
+            tapRootAddress: undefined
+          });
+
+          setIsLoading(false);
+          return;
+        }
+
+        // Check the original logout flag for backward compatibility
+        const logoutFlag = await AsyncStorage.getItem('paybit-logout-flag');
+        if (logoutFlag === 'true') {
+          console.log('Legacy logout flag detected, preventing auto-login');
+          await AsyncStorage.removeItem('paybit-logout-flag');
+          await AsyncStorage.removeItem('paybit-storage');
+          setIsLoading(false);
+          return;
+        }
+
+        // No logout flags, check for a valid token
+        const storageData = await AsyncStorage.getItem('paybit-storage');
+        if (storageData) {
+          try {
+            const parsedData = JSON.parse(storageData);
+
+            if (parsedData?.state?.user?.token) {
+              // Restore the user data from storage
+              if (parsedData.state.user) {
+                setUser(parsedData.state.user);
+                console.log('Found existing token, auto-logging in');
+                router.replace('/(tabs)');
+                return;
+              }
+            }
+          } catch (error) {
+            console.error('Error parsing storage data:', error);
+          }
+        }
+
+        // No valid token found
+        console.log('No valid token found, showing login screen');
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error during auto-login check:', error);
+        setIsLoading(false);
+      }
+    };
+
+    checkExistingToken();
+  }, [router, setUser]);
+
   const navigateToSignup = () => {
     router.push('/(auth)/signup');
   };
@@ -39,28 +122,57 @@ const LoginScreen = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
+
   const fetchSignIn = async () => {
     try {
+      setIsLoading(true);
       const response = await axios.post(`${apiEndpoint}/api/auth/login`, { email, password });
-      let data = response.data.data
+      let data = response.data.data;
 
-      setUser({
-        userID: data.user.uid,
-        userUID: data.user.id,
-        userFullName: data.user.fullname,
-        userProfileImage: data.user.profileImage,
-        token: data.token,
-        balance: '0.00',
-        btcToUsd: 0,
-        btcToEur: 0
-      });
-      router.replace('/(tabs)');
+      // Fetch Bitcoin price in parallel after successful login
+      try {
+        const priceResponse = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,eur');
 
+        setUser({
+          userID: data.user.uid,
+          userUID: data.user.id,
+          userFullName: data.user.fullname,
+          userProfileImage: data.user.profileImage,
+          token: data.token,
+          balance: data.user.balance || '0.00',
+          btcToUsd: priceResponse.data.bitcoin.usd,
+          btcToEur: priceResponse.data.bitcoin.eur,
+          userEmail: email,
+          tapRootAddress: data.user.tapRootAddress
+        });
+      } catch (priceError) {
+        console.error('Error fetching Bitcoin price:', priceError);
+
+        // Continue with login even if price fetch fails
+        setUser({
+          userID: data.user.uid,
+          userUID: data.user.id,
+          userFullName: data.user.fullname,
+          userProfileImage: data.user.profileImage,
+          token: data.token,
+          balance: data.user.balance || '0.00',
+          btcToUsd: 0,
+          btcToEur: 0,
+          userEmail: email,
+          tapRootAddress: data.user.tapRootAddress
+        });
+      }
+
+      console.log('Login successful, token saved');
+      router.push('/(tabs)');
     } catch (error) {
       console.error('Login error:', error);
-      Alert.alert('Login Failed', 'An error occurred while logging in', [{ text: 'OK' }]);
+      Alert.alert('Login Failed', 'Invalid email or password. Please try again.', [{ text: 'OK' }]);
+    } finally {
+      setIsLoading(false);
     }
   };
+
   const handleSignIn = () => {
     let isValid = true;
 
@@ -84,9 +196,23 @@ const LoginScreen = () => {
     }
 
     if (isValid) {
-      fetchSignIn()
+      fetchSignIn();
     }
   };
+
+  // Show loading screen while checking token
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Image
+          source={require("../../assets/images/icon.png")}
+          style={styles.logoLoading}
+        />
+        <ActivityIndicator size="large" color="#F7931A" style={styles.loadingIndicator} />
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -97,7 +223,7 @@ const LoginScreen = () => {
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView 
+          <ScrollView
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
@@ -173,14 +299,21 @@ const LoginScreen = () => {
                 <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={handleSignIn}>
+              <TouchableOpacity
+                onPress={handleSignIn}
+                disabled={isLoading}
+              >
                 <LinearGradient
                   colors={['#F7931A', '#000000']}
                   style={styles.loginButton}
                   start={{ x: 1, y: 0 }}
                   end={{ x: 0, y: 1 }}
                 >
-                  <Text style={styles.loginButtonText}>Sign In</Text>
+                  {isLoading ? (
+                    <ActivityIndicator color="#FFFFFF" size="small" />
+                  ) : (
+                    <Text style={styles.loginButtonText}>Sign In</Text>
+                  )}
                 </LinearGradient>
               </TouchableOpacity>
 
@@ -206,22 +339,17 @@ const LoginScreen = () => {
                   <Ionicons name="logo-facebook" size={24} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>
-              
-              {/* Add padding at the bottom to ensure scrolling works well */}
-              <View style={{ height: 80 }} />
             </View>
-          </ScrollView>
-        </TouchableWithoutFeedback>
+
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>Don't have an account? </Text>
+              <TouchableOpacity onPress={navigateToSignup}>
+                <Text style={styles.signupText}>Sign Up</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
       </KeyboardAvoidingView>
-      
-      {/* Footer positioned absolutely at bottom */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>Don't have an account? </Text>
-        <TouchableOpacity onPress={navigateToSignup}>
-          <Text style={styles.signupText}>Sign Up</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -230,9 +358,25 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#000000",
   },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 20,
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000000',
+  },
+  logoLoading: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 20,
+  },
+  loadingIndicator: {
+    marginVertical: 20,
+  },
+  loadingText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '500',
   },
   header: {
     alignItems: "center",

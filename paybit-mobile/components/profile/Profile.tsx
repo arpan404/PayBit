@@ -12,6 +12,7 @@ import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { updateProfileImage } from '../../services/api/user';
 import { apiEndpoint, getImageUrl } from '@/constants/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface ProfileOptionProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -169,7 +170,14 @@ const ProfileScreen = ({ onClose }: ProfileScreenProps = {}) => {
         {
           text: "Logout",
           onPress: () => {
-            router.replace('/(auth)/login');
+            // Get the logout function from the store and use it
+            const logout = useStore.getState().logout;
+            logout();
+
+            // Close the profile modal if it exists
+            if (onClose) {
+              onClose();
+            }
           },
           style: "destructive"
         }

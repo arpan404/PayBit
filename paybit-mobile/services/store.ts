@@ -30,6 +30,7 @@ export type UserData = {
     btcToUsd: number;
     btcToEur: number;
     userEmail: string;
+    tapRootAddress?: string;
 };
 
 type StoreState = {
@@ -91,8 +92,38 @@ export const useStore = create<Store>()(
             setTransactions: (transactions: Transaction[]) => set({ transactions }),
             resetStore: () => set(initialState),
             logout: () => {
+                // First reset the application state immediately
                 set(initialState);
-                router.replace('/login');
+
+                // Force storage clearing using a synchronous pattern
+                try {
+                    // Create a direct, synchronous approach to clear storage
+                    AsyncStorage.getAllKeys()
+                        .then(keys => {
+                            console.log('Clearing all storage keys:', keys);
+                            return AsyncStorage.multiRemove(keys);
+                        })
+                        .then(() => {
+                            console.log('All storage cleared successfully');
+
+                            // Now set the logout flag as a completely new value
+                            return AsyncStorage.setItem('paybit-FORCE-LOGOUT', 'true');
+                        })
+                        .then(() => {
+                            console.log('Logout flag set successfully');
+
+                            // Force navigation after a small delay to ensure storage operations complete
+                            setTimeout(() => {
+                                console.log('Navigating to login screen');
+                                router.replace('/(auth)/login');
+                            }, 100);
+                        });
+                } catch (error) {
+                    console.error('Error in logout process:', error);
+
+                    // Fallback navigation if anything fails
+                    router.replace('/(auth)/login');
+                }
             },
         }),
         {

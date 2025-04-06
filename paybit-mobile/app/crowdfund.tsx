@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -9,6 +9,8 @@ import {
     Modal,
     Image,
     Alert,
+    ActivityIndicator,
+    RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -18,132 +20,333 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { useStore } from '../services/store';
+import axios from 'axios';
+import { apiEndpoint, getImageUrl } from '../constants/api';
 
 interface Campaign {
     id: string;
-    title: string;
+    name: string;
     description: string;
-    targetAmount: number;
-    raisedAmount: number;
-    daysLeft: number;
-    imageUrl: string;
+    goalAmount: number;
+    collectedAmount: number;
+    progress: number;
+    image?: string;
+    creatorUid: string;
+    createdAt: string;
+    updatedAt: string;
 }
-
-const mockCampaigns: Campaign[] = [
-    {
-        id: '1',
-        title: 'Community Solar Project',
-        description: 'Help us install solar panels in our local community center',
-        targetAmount: 2.5,
-        raisedAmount: 1.2,
-        daysLeft: 15,
-        imageUrl: 'https://example.com/solar.jpg',
-    },
-    {
-        id: '2',
-        title: 'Tech Education Fund',
-        description: 'Providing coding education to underprivileged students',
-        targetAmount: 1.8,
-        raisedAmount: 0.8,
-        daysLeft: 20,
-        imageUrl: 'https://example.com/education.jpg',
-    },
-];
 
 const CrowdFundScreen = () => {
     const router = useRouter();
     const { colors, isDarkMode } = useTheme();
     const { selectedCurrency, formatAmount } = useCurrency();
+    const user = useStore((state) => state.user);
+
+    // UI states
     const [showNewCampaign, setShowNewCampaign] = useState(false);
-    const [campaigns, setCampaigns] = useState<Campaign[]>(mockCampaigns);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+    const [showDonationModal, setShowDonationModal] = useState(false);
+
+    // Form states
+    const [campaignTitle, setCampaignTitle] = useState('');
+    const [campaignDescription, setCampaignDescription] = useState('');
+    const [campaignGoal, setCampaignGoal] = useState('');
+    const [campaignImage, setCampaignImage] = useState('');
+    const [donationAmount, setDonationAmount] = useState('');
+    const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Fetch campaigns on component mount
+    useEffect(() => {
+        fetchCampaigns();
+    }, []);
+
+    // Function to fetch campaigns from the API
+    const fetchCampaigns = async () => {
+        try {
+            setIsLoading(true);
+            const response = await axios.get(`${apiEndpoint}/api/donation/campaign`, {
+                params: {
+                    sort: 'newest',
+                    limit: 20,
+                },
+                headers: user.token ? {
+                    'x-auth-token': user.token,
+                    'Authorization': `Bearer ${user.token}`
+                } : {}
+            });
+
+            if (response.data.success) {
+                setCampaigns(response.data.data.campaigns);
+            }
+        } catch (error) {
+            console.error('Error fetching campaigns:', error);
+            Alert.alert(
+                'Error',
+                'Failed to load campaigns. Please try again later.'
+            );
+        } finally {
+            setIsLoading(false);
+            setIsRefreshing(false);
+        }
+    };
+
+    // Handle pull-to-refresh
+    const handleRefresh = () => {
+        setIsRefreshing(true);
+        fetchCampaigns();
+    };
 
     const handleBack = () => {
         router.back();
     };
 
+    // Show donation modal for a campaign
     const handleDonate = (campaignId: string) => {
-        // TODO: Implement donation flow
-        Alert.alert('Donate', 'Enter amount to donate', [
-            {
-                text: 'Cancel',
-                style: 'cancel'
-            },
-            {
-                text: 'Donate',
-                onPress: () => {
-                    // TODO: Process donation
+        if (!user.token) {
+            Alert.alert(
+                'Login Required',
+                'Please login to donate',
+                [{ text: 'OK', onPress: () => router.push('/login') }]
+            );
+            return;
+        }
+
+        setSelectedCampaignId(campaignId);
+        setDonationAmount('');
+        setShowDonationModal(true);
+    };
+
+    // Show confirmation dialog for donation
+    const showDonationConfirmation = () => {
+        if (!selectedCampaignId || !donationAmount || isNaN(parseFloat(donationAmount)) || parseFloat(donationAmount) <= 0) {
+            Alert.alert('Error', 'Please enter a valid amount');
+            return;
+        }
+
+        const campaign = campaigns.find(c => c.id === selectedCampaignId);
+        if (!campaign) return;
+
+        Alert.alert(
+            'Confirm Donation',
+            `Are you sure you want to donate ${donationAmount} BTC to the campaign "${campaign.name}"?`,
+            [
+                {
+                    text: 'Cancel',
+                    style: 'cancel'
+                },
+                {
+                    text: 'Donate',
+                    onPress: () => processDonation()
                 }
+            ]
+        );
+    };
+
+    // Process the donation API call
+    const processDonation = async () => {
+        if (!selectedCampaignId || !donationAmount) return;
+
+        try {
+            setIsSubmitting(true);
+
+            const response = await axios.post(
+                `${apiEndpoint}/api/donation/donate/${selectedCampaignId}`,
+                { amount: parseFloat(donationAmount) },
+                {
+                    headers: {
+                        'x-auth-token': user.token,
+                        'Authorization': `Bearer ${user.token}`
+                    }
+                }
+            );
+
+            if (response.data.success) {
+                Alert.alert(
+                    'Success',
+                    'Thank you for your donation!',
+                    [{ text: 'OK' }]
+                );
+
+                // Refresh the campaigns list
+                fetchCampaigns();
+            } else {
+                throw new Error(response.data.message || 'Donation failed');
             }
-        ]);
+        } catch (error: any) {
+            Alert.alert(
+                'Error',
+                error.response?.data?.message || 'Failed to process donation'
+            );
+        } finally {
+            setIsSubmitting(false);
+            setSelectedCampaignId(null);
+            setDonationAmount('');
+        }
     };
 
     const handleCreateCampaign = () => {
+        if (!user.token) {
+            Alert.alert(
+                'Login Required',
+                'Please login to create a campaign',
+                [{ text: 'OK', onPress: () => router.push('/login') }]
+            );
+            return;
+        }
+
+        // Reset form fields
+        setCampaignTitle('');
+        setCampaignDescription('');
+        setCampaignGoal('');
+        setCampaignImage('');
         setShowNewCampaign(true);
     };
 
-    const renderCampaignCard = (campaign: Campaign) => (
-        <TouchableOpacity
-            key={campaign.id}
-            style={[styles.campaignCard, { backgroundColor: colors.card }]}
-            activeOpacity={0.9}
-        >
-            <View style={styles.campaignImageContainer}>
-                <LinearGradient
-                    colors={['#F7931A', '#000000']}
-                    style={styles.campaignImagePlaceholder}
-                    start={{ x: 1, y: 0 }}
-                    end={{ x: 0, y: 1 }}
-                >
-                    <Ionicons name="people" size={32} color="#FFFFFF" />
-                </LinearGradient>
-            </View>
-            <View style={styles.campaignInfo}>
-                <Text style={[styles.campaignTitle, { color: colors.text }]}>
-                    {campaign.title}
-                </Text>
-                <Text
-                    style={[styles.campaignDescription, { color: colors.textSecondary }]}
-                    numberOfLines={2}
-                >
-                    {campaign.description}
-                </Text>
-                <View style={styles.progressContainer}>
-                    <View
-                        style={[
-                            styles.progressBar,
-                            {
-                                backgroundColor: colors.border,
-                                width: '100%',
-                            },
-                        ]}
+    // Submit new campaign to API
+    const submitNewCampaign = async () => {
+        // Form validation
+        if (!campaignTitle || campaignTitle.length < 5 || campaignTitle.length > 100) {
+            Alert.alert('Error', 'Campaign name must be between 5 and 100 characters');
+            return;
+        }
+
+        if (!campaignDescription || campaignDescription.length < 2 || campaignDescription.length > 2000) {
+            Alert.alert('Error', 'Description must be between 2 and 2000 characters');
+            return;
+        }
+
+        if (!campaignGoal || isNaN(parseFloat(campaignGoal)) || parseFloat(campaignGoal) <= 0) {
+            Alert.alert('Error', 'Please enter a valid goal amount greater than 0');
+            return;
+        }
+
+        if (campaignImage && !campaignImage.match(/^https?:\/\/.+/i)) {
+            Alert.alert('Error', 'Image URL must be a valid URL starting with http:// or https://');
+            return;
+        }
+
+        try {
+            setIsSubmitting(true);
+
+            const response = await axios.post(
+                `${apiEndpoint}/api/donation/campaign`,
+                {
+                    name: campaignTitle,
+                    description: campaignDescription,
+                    goalAmount: parseFloat(campaignGoal),
+                    image: campaignImage || undefined
+                },
+                {
+                    headers: {
+                        'x-auth-token': user.token,
+                        'Authorization': `Bearer ${user.token}`
+                    }
+                }
+            );
+
+            if (response.data.success) {
+                setShowNewCampaign(false);
+                Alert.alert(
+                    'Success',
+                    'Your campaign has been created!',
+                    [{ text: 'OK' }]
+                );
+
+                // Refresh the campaigns list
+                fetchCampaigns();
+            } else {
+                throw new Error(response.data.message || 'Campaign creation failed');
+            }
+        } catch (error: any) {
+            Alert.alert(
+                'Error',
+                error.response?.data?.message || 'Failed to create campaign'
+            );
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const renderCampaignCard = (campaign: Campaign) => {
+        const daysCreated = Math.ceil((new Date().getTime() - new Date(campaign.createdAt).getTime()) / (1000 * 3600 * 24));
+        const daysLeft = 30 - daysCreated; // Assuming campaigns run for 30 days
+
+        return (
+            <TouchableOpacity
+                key={campaign.id}
+                style={[styles.campaignCard, { backgroundColor: colors.card }]}
+                activeOpacity={0.9}
+            >
+                <View style={styles.campaignImageContainer}>
+                    {campaign.image ? (
+                        <Image
+                            source={{ uri: campaign.image }}
+                            style={styles.campaignImage}
+                            resizeMode="cover"
+                        />
+                    ) : (
+                        <LinearGradient
+                            colors={['#F7931A', '#000000']}
+                            style={styles.campaignImagePlaceholder}
+                            start={{ x: 1, y: 0 }}
+                            end={{ x: 0, y: 1 }}
+                        >
+                            <Ionicons name="people" size={32} color="#FFFFFF" />
+                        </LinearGradient>
+                    )}
+                </View>
+                <View style={styles.campaignInfo}>
+                    <Text style={[styles.campaignTitle, { color: colors.text }]}>
+                        {campaign.name}
+                    </Text>
+                    <Text
+                        style={[styles.campaignDescription, { color: colors.textSecondary }]}
+                        numberOfLines={2}
                     >
+                        {campaign.description}
+                    </Text>
+                    <View style={styles.progressContainer}>
                         <View
                             style={[
-                                styles.progressFill,
+                                styles.progressBar,
                                 {
-                                    width: `${(campaign.raisedAmount / campaign.targetAmount) * 100}%`,
+                                    backgroundColor: colors.border,
+                                    width: '100%',
                                 },
                             ]}
-                        />
+                        >
+                            <View
+                                style={[
+                                    styles.progressFill,
+                                    {
+                                        width: `${campaign.progress}%`,
+                                    },
+                                ]}
+                            />
+                        </View>
+                        <View style={styles.progressStats}>
+                            <Text style={[styles.progressText, { color: colors.text }]}>
+                                {campaign.collectedAmount.toFixed(2)} / {campaign.goalAmount.toFixed(2)} BTC
+                            </Text>
+                            <Text style={[styles.progressText, { color: colors.text }]}>
+                                {daysLeft > 0 ? `${daysLeft} days left` : 'Ended'}
+                            </Text>
+                        </View>
                     </View>
-                    <View style={styles.progressStats}>
-                        <Text style={[styles.progressText, { color: colors.text }]}>
-                            {campaign.raisedAmount} BTC raised
-                        </Text>
-                        <Text style={[styles.progressText, { color: colors.text }]}>
-                            {campaign.daysLeft} days left
-                        </Text>
-                    </View>
+                    <TouchableOpacity
+                        style={[styles.donateButton, { backgroundColor: colors.primary }]}
+                        onPress={() => handleDonate(campaign.id)}
+                    >
+                        <Text style={styles.donateButtonText}>Donate</Text>
+                    </TouchableOpacity>
                 </View>
-                <TouchableOpacity
-                    style={[styles.donateButton, { backgroundColor: colors.primary }]}
-                    onPress={() => handleDonate(campaign.id)}
-                >
-                    <Text style={styles.donateButtonText}>Donate</Text>
-                </TouchableOpacity>
-            </View>
-        </TouchableOpacity>
-    );
+            </TouchableOpacity>
+        );
+    };
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -164,18 +367,127 @@ const CrowdFundScreen = () => {
                 </TouchableOpacity>
             </View>
 
-            <ScrollView
-                style={styles.content}
-                showsVerticalScrollIndicator={false}
+            {isLoading && !isRefreshing ? (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                    <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+                        Loading campaigns...
+                    </Text>
+                </View>
+            ) : (
+                <ScrollView
+                    style={styles.content}
+                    showsVerticalScrollIndicator={false}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={isRefreshing}
+                            onRefresh={handleRefresh}
+                            tintColor={colors.primary}
+                        />
+                    }
+                >
+                    {campaigns.length > 0 ? (
+                        campaigns.map(renderCampaignCard)
+                    ) : (
+                        <View style={styles.emptyContainer}>
+                            <Ionicons name="nutrition-outline" size={64} color={colors.textSecondary} />
+                            <Text style={[styles.emptyText, { color: colors.text }]}>
+                                No campaigns found
+                            </Text>
+                            <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>
+                                Be the first to create a fundraising campaign!
+                            </Text>
+                            <TouchableOpacity
+                                style={[styles.createCampaignButton, { backgroundColor: colors.primary }]}
+                                onPress={handleCreateCampaign}
+                            >
+                                <Text style={styles.createCampaignButtonText}>
+                                    Create Campaign
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                </ScrollView>
+            )}
+
+            {/* Donation Amount Modal */}
+            <Modal
+                visible={showDonationModal}
+                animationType="slide"
+                transparent={true}
+                onRequestClose={() => {
+                    if (!isSubmitting) {
+                        setShowDonationModal(false);
+                        setDonationAmount('');
+                        setSelectedCampaignId(null);
+                    }
+                }}
             >
-                {campaigns.map(renderCampaignCard)}
-            </ScrollView>
+                <BlurView
+                    intensity={20}
+                    style={[styles.modalContainer, { backgroundColor: colors.background }]}
+                >
+                    <View style={[styles.modalContent, { backgroundColor: colors.card, minHeight: '50%' }]}>
+                        <View style={styles.modalHeader}>
+                            <Text style={[styles.modalTitle, { color: colors.text }]}>
+                                Donation Amount
+                            </Text>
+                            <TouchableOpacity
+                                onPress={() => {
+                                    setShowDonationModal(false);
+                                    setDonationAmount('');
+                                    setSelectedCampaignId(null);
+                                }}
+                                disabled={isSubmitting}
+                            >
+                                <Ionicons name="close" size={24} color={colors.text} />
+                            </TouchableOpacity>
+                        </View>
+
+                        <View style={styles.donationModalForm}>
+                            <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>
+                                How much would you like to donate?
+                            </Text>
+                            <TextInput
+                                style={[styles.input, { backgroundColor: colors.background, color: colors.text }]}
+                                placeholder="0.001"
+                                placeholderTextColor={colors.textSecondary}
+                                keyboardType="numeric"
+                                value={donationAmount}
+                                onChangeText={setDonationAmount}
+                                autoFocus
+                            />
+
+                            <TouchableOpacity
+                                style={[
+                                    styles.submitButton,
+                                    { backgroundColor: colors.primary },
+                                    isSubmitting && { opacity: 0.7 }
+                                ]}
+                                onPress={() => {
+                                    setShowDonationModal(false);
+                                    showDonationConfirmation();
+                                }}
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? (
+                                    <ActivityIndicator color="#FFFFFF" size="small" />
+                                ) : (
+                                    <Text style={styles.submitButtonText}>Continue</Text>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </BlurView>
+            </Modal>
 
             <Modal
                 visible={showNewCampaign}
                 animationType="slide"
                 transparent={true}
-                onRequestClose={() => setShowNewCampaign(false)}
+                onRequestClose={() => {
+                    if (!isSubmitting) setShowNewCampaign(false)
+                }}
             >
                 <BlurView
                     intensity={20}
@@ -188,39 +500,77 @@ const CrowdFundScreen = () => {
                             </Text>
                             <TouchableOpacity
                                 onPress={() => setShowNewCampaign(false)}
+                                disabled={isSubmitting}
                             >
                                 <Ionicons name="close" size={24} color={colors.text} />
                             </TouchableOpacity>
                         </View>
 
                         <ScrollView style={styles.modalForm}>
+                            <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>
+                                Campaign Title (5-100 characters)
+                            </Text>
                             <TextInput
                                 style={[styles.input, { backgroundColor: colors.background, color: colors.text }]}
                                 placeholder="Campaign Title"
                                 placeholderTextColor={colors.textSecondary}
+                                value={campaignTitle}
+                                onChangeText={setCampaignTitle}
+                                maxLength={100}
                             />
+
+                            <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>
+                                Description (2-2000 characters)
+                            </Text>
                             <TextInput
-                                style={[styles.input, { backgroundColor: colors.background, color: colors.text }]}
-                                placeholder="Description"
+                                style={[styles.textArea, { backgroundColor: colors.background, color: colors.text }]}
+                                placeholder="Describe your campaign in detail"
                                 placeholderTextColor={colors.textSecondary}
                                 multiline
-                                numberOfLines={4}
+                                numberOfLines={6}
+                                textAlignVertical="top"
+                                value={campaignDescription}
+                                onChangeText={setCampaignDescription}
+                                maxLength={2000}
                             />
+
+                            <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>
+                                Goal Amount (BTC)
+                            </Text>
                             <TextInput
                                 style={[styles.input, { backgroundColor: colors.background, color: colors.text }]}
                                 placeholder="Target Amount (BTC)"
                                 placeholderTextColor={colors.textSecondary}
                                 keyboardType="decimal-pad"
+                                value={campaignGoal}
+                                onChangeText={setCampaignGoal}
+                            />
+
+                            <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>
+                                Image URL (Optional)
+                            </Text>
+                            <TextInput
+                                style={[styles.input, { backgroundColor: colors.background, color: colors.text }]}
+                                placeholder="https://example.com/image.jpg"
+                                placeholderTextColor={colors.textSecondary}
+                                value={campaignImage}
+                                onChangeText={setCampaignImage}
                             />
 
                             <TouchableOpacity
-                                style={[styles.submitButton, { backgroundColor: colors.primary }]}
-                                onPress={() => {
-                                    // TODO: Handle campaign creation
-                                    setShowNewCampaign(false);
-                                }}
+                                style={[
+                                    styles.submitButton,
+                                    { backgroundColor: colors.primary },
+                                    isSubmitting && { opacity: 0.7 }
+                                ]}
+                                onPress={submitNewCampaign}
+                                disabled={isSubmitting}
                             >
-                                <Text style={styles.submitButtonText}>Create Campaign</Text>
+                                {isSubmitting ? (
+                                    <ActivityIndicator color="#FFFFFF" size="small" />
+                                ) : (
+                                    <Text style={styles.submitButtonText}>Create Campaign</Text>
+                                )}
                             </TouchableOpacity>
                         </ScrollView>
                     </View>
@@ -286,6 +636,10 @@ const styles = StyleSheet.create({
         height: 160,
         width: '100%',
     },
+    campaignImage: {
+        width: '100%',
+        height: '100%',
+    },
     campaignImagePlaceholder: {
         width: '100%',
         height: '100%',
@@ -333,7 +687,7 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         padding: 16,
-        minHeight: '70%',
+        minHeight: '80%',
     },
     modalHeader: {
         flexDirection: 'row',
@@ -348,19 +702,72 @@ const styles = StyleSheet.create({
     modalForm: {
         flex: 1,
     },
+    donationModalForm: {
+        paddingVertical: 20,
+    },
+    inputLabel: {
+        fontSize: 14,
+        fontWeight: '500',
+        marginBottom: 8,
+        marginTop: 12,
+    },
     input: {
         borderRadius: 8,
         padding: 12,
         marginBottom: 16,
         fontSize: 16,
     },
+    textArea: {
+        borderRadius: 8,
+        padding: 12,
+        marginBottom: 16,
+        fontSize: 16,
+        minHeight: 120,
+    },
     submitButton: {
         borderRadius: 8,
         padding: 16,
         alignItems: 'center',
         marginTop: 16,
+        marginBottom: 300,
     },
     submitButtonText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    loadingText: {
+        marginTop: 12,
+        fontSize: 16,
+    },
+    emptyContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 40,
+        marginTop: 40,
+    },
+    emptyText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginTop: 16,
+    },
+    emptySubtext: {
+        fontSize: 14,
+        textAlign: 'center',
+        marginTop: 8,
+        marginBottom: 24,
+    },
+    createCampaignButton: {
+        paddingHorizontal: 24,
+        paddingVertical: 12,
+        borderRadius: 20,
+    },
+    createCampaignButtonText: {
         color: '#FFFFFF',
         fontSize: 16,
         fontWeight: '600',
