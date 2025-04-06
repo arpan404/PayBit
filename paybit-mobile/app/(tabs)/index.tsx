@@ -83,6 +83,10 @@ const HomeScreen = () => {
         // If we got a successful response, the token is valid
         console.log('Token is valid, showing dashboard');
         setIsLoading(false);
+
+        // Update last updated time for the balance display
+        setLastUpdatedTime(Date.now());
+
       } catch (error) {
         console.error('Token verification failed:', error);
 
@@ -96,6 +100,17 @@ const HomeScreen = () => {
           Alert.alert(
             'Session Expired',
             'Your session has expired. Please login again.',
+            [{
+              text: 'OK',
+              onPress: () => router.replace('/(auth)/login')
+            }]
+          );
+        } else if (axios.isAxiosError(error) && error.response?.status === 404) {
+          console.log('API endpoint not found, redirecting to login');
+          setUser({ token: '' });
+          Alert.alert(
+            'Server Error',
+            'Unable to connect to the server. Please try again later.',
             [{
               text: 'OK',
               onPress: () => router.replace('/(auth)/login')
@@ -119,9 +134,22 @@ const HomeScreen = () => {
 
   const fetchBitcoinPrice = async (forceUpdate = false) => {
     try {
-      // Only fetch if we don't already have a price, it's been more than 30 minutes, or forced
+      // If forceUpdate is true, always fetch fresh data
+      if (forceUpdate) {
+        const response = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,eur');
+        setUser({
+          ...user,
+          btcToUsd: response.data.bitcoin.usd,
+          btcToEur: response.data.bitcoin.eur
+        });
+        setLastUpdatedTime(Date.now());
+        console.log('Bitcoin price updated successfully');
+        return;
+      }
+
+      // For regular updates, check time and existing price
       const thirtyMinutesAgo = Date.now() - 30 * 60 * 1000;
-      if (forceUpdate || user.btcToUsd <= 0 || lastUpdatedTime < thirtyMinutesAgo) {
+      if (user.btcToUsd <= 0 || lastUpdatedTime < thirtyMinutesAgo) {
         const response = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd,eur');
         setUser({
           ...user,
@@ -131,7 +159,12 @@ const HomeScreen = () => {
         setLastUpdatedTime(Date.now());
         console.log('Bitcoin price updated successfully');
       }
-    } catch (error) {
+    } catch (error: any) {
+      // If it's a rate limit error (429), just ignore it and keep using the existing price
+      if (error.response?.status === 429) {
+        console.log('Rate limit hit, using existing Bitcoin price');
+        return;
+      }
       console.error('Error fetching Bitcoin price:', error);
     }
   };
@@ -207,12 +240,12 @@ const HomeScreen = () => {
     router.push('/crowdfund');
   };
 
-  const handleQuickPay = () => {
-    router.push('/quickpay');
-  };
-
   const handleWallet = () => {
     router.push('/wallet');
+  };
+
+  const handleQuickPay = () => {
+    router.push('/quickpay');
   };
 
   const handleSeeAllTransactions = () => {
@@ -225,6 +258,45 @@ const HomeScreen = () => {
 
   const handleQRPress = () => {
     Alert.alert('QR Code', 'QR Code scanner will be implemented here');
+  };
+
+  const handleRefreshPrice = async () => {
+    try {
+      // Fetch Bitcoin price
+      await fetchBitcoinPrice(true);
+
+      // Fetch user data from auto-login endpoint
+      const response = await axios.post(`${apiEndpoint}/api/auth/auto-login`, {
+        email: user.userEmail
+      }, {
+        headers: {
+          'x-auth-token': user.token,
+          'Authorization': `Bearer ${user.token}`
+        }
+      });
+
+      if (response.data.success) {
+        const data = response.data.data;
+        // Update all user data from the response
+        setUser({
+          ...user,
+          userID: data.user.uid,
+          userUID: data.user.id,
+          userFullName: data.user.fullname,
+          userProfileImage: data.user.profileImage,
+          balance: data.user.balance || '0.00',
+          btcToUsd: data.user.btcToUsd || user.btcToUsd,
+          btcToEur: data.user.btcToEur || user.btcToEur,
+          userEmail: data.user.email,
+          tapRootAddress: data.user.tapRootAddress,
+          token: data.token
+        });
+        setLastUpdatedTime(Date.now());
+        console.log('User data updated successfully from auto-login');
+      }
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    }
   };
 
   const renderHeader = () => (
@@ -268,10 +340,6 @@ const HomeScreen = () => {
 
     const days = Math.floor(timeDiff / 86400);
     return `${days} ${days === 1 ? 'day' : 'days'} ago`;
-  };
-
-  const handleRefreshPrice = () => {
-    fetchBitcoinPrice(true);
   };
 
   const renderBalanceCard = () => (

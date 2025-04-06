@@ -10,6 +10,9 @@ import QRCode from 'react-native-qrcode-svg';
 import * as Crypto from 'expo-crypto';
 import { CameraView, BarcodeScanningResult, PermissionResponse } from 'expo-camera';
 import { useRouter } from 'expo-router';
+import axios from 'axios';
+import * as Haptics from 'expo-haptics';
+import { apiEndpoint } from '@/constants/api';
 
 const ScanScreen = () => {
     const insets = useSafeAreaInsets();
@@ -136,34 +139,50 @@ const ScanScreen = () => {
         }
     };
 
-    const handleSendPayment = () => {
+    const handleSendPayment = async () => {
         if (!paymentAmount || parseFloat(paymentAmount) <= 0) {
             Alert.alert("Error", "Please enter a valid amount");
             return;
         }
 
+        if (!recipientId) {
+            Alert.alert("Error", "No recipient selected. Please scan a QR code first.");
+            return;
+        }
+
         setIsProcessing(true);
-
-        // Simulate processing
-        setTimeout(() => {
-            setIsProcessing(false);
-            hideModal();
-
-            // Show success message
-            Alert.alert(
-                "Payment Sent",
-                `You've successfully sent ${paymentAmount} BTC`,
-                [{ text: "OK" }]
+        try {
+            const response = await axios.post(
+                `${apiEndpoint}/api/transaction/send`,
+                {
+                    amount: parseFloat(paymentAmount),
+                    recipientUID: recipientId,
+                    description: 'Payment via QR code'
+                },
+                {
+                    headers: {
+                        'x-auth-token': userData.token,
+                        'Authorization': `Bearer ${userData.token}`
+                    }
+                }
             );
 
-            // Reset scanning
-            setScanned(false);
-            setPaymentAmount('');
-            setRecipientId('');
-
-            // Navigate to transactions or stay on current screen
-            // router.push('/transactions' as any);
-        }, 1500);
+            if (response.data.success) {
+                Alert.alert('Success', 'Payment sent successfully!');
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                setPaymentAmount('');
+                setRecipientId('');
+                setScanned(false);
+                hideModal();
+            } else {
+                throw new Error(response.data.message || 'Payment failed');
+            }
+        } catch (error: any) {
+            Alert.alert('Error', error.response?.data?.message || 'Failed to process payment');
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
     const renderCameraContent = () => {

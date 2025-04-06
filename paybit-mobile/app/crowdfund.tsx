@@ -214,8 +214,8 @@ const CrowdFundScreen = () => {
             return;
         }
 
-        if (!campaignDescription || campaignDescription.length < 20 || campaignDescription.length > 2000) {
-            Alert.alert('Error', 'Description must be between 20 and 2000 characters');
+        if (!campaignDescription || campaignDescription.length < 2 || campaignDescription.length > 2000) {
+            Alert.alert('Error', 'Description must be between 2 and 2000 characters');
             return;
         }
 
@@ -520,7 +520,7 @@ const CrowdFundScreen = () => {
                             />
 
                             <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>
-                                Description (20-2000 characters)
+                                Description (2-2000 characters)
                             </Text>
                             <TextInput
                                 style={[styles.textArea, { backgroundColor: colors.background, color: colors.text }]}

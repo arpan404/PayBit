@@ -4,13 +4,11 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    TextInput,
     SafeAreaView,
     Alert,
-    Platform,
     ActivityIndicator,
-    Share,
-    Clipboard,
+    TextInput,
+    FlatList,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,410 +16,318 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '../context/ThemeContext';
 import { useStore, selectUser } from '../services/store';
 import * as Haptics from 'expo-haptics';
-import * as NFC from 'expo-nfc';
-import axios from 'axios';
-import { apiEndpoint } from '@/constants/api';
 
-const QuickPayScreen = () => {
+interface NearbyDevice {
+    id: string;
+    name: string;
+    ip: string;
+    lastSeen: number;
+}
+
+function QuickPayScreen() {
     const router = useRouter();
     const { colors, isDarkMode } = useTheme();
     const user = useStore(selectUser);
     const [isLoading, setIsLoading] = useState(false);
-    const [isNFCEnabled, setIsNFCEnabled] = useState(false);
+    const [isScanning, setIsScanning] = useState(false);
     const [amount, setAmount] = useState('');
     const [note, setNote] = useState('');
-    const [isScanning, setIsScanning] = useState(false);
+    const [usdAmount, setUsdAmount] = useState('0.00');
+    const [devices, setDevices] = useState<NearbyDevice[]>([]);
+    const [selectedDevice, setSelectedDevice] = useState<NearbyDevice | null>(null);
+    const btcToUsd = user.btcToUsd || 0;
 
-    // Check NFC availability and enable it
-    useEffect(() => {
-        const checkNFC = async () => {
-            try {
-                const isAvailable = await NFC.isAvailableAsync();
-                if (!isAvailable) {
-                    Alert.alert('NFC Not Available', 'Your device does not support NFC payments.');
-                    router.back();
-                    return;
-                }
+    // Demo devices
+    const demoDevices: NearbyDevice[] = [
+        {
+            id: '1',
+            name: 'iPhone 13 Pro',
+            ip: '192.168.1.100',
+            lastSeen: Date.now()
+        },
+        {
+            id: '2',
+            name: 'Samsung Galaxy S21',
+            ip: '192.168.1.101',
+            lastSeen: Date.now()
+        },
+        {
+            id: '3',
+            name: 'Google Pixel 6',
+            ip: '192.168.1.102',
+            lastSeen: Date.now()
+        }
+    ];
 
-                const isEnabled = await NFC.isEnabledAsync();
-                if (!isEnabled) {
-                    Alert.alert('NFC Disabled', 'Please enable NFC in your device settings to use this feature.');
-                    router.back();
-                    return;
-                }
-
-                setIsNFCEnabled(true);
-            } catch (error) {
-                console.error('Error checking NFC:', error);
-                Alert.alert('Error', 'Failed to check NFC availability');
-                router.back();
-            }
-        };
-
-        checkNFC();
-    }, []);
-
-    // Start NFC scanning
-    const startScanning = async () => {
-        if (!isNFCEnabled || isScanning) return;
-
+    const scanNetwork = async () => {
+        setIsLoading(true);
+        setIsScanning(true);
         try {
-            setIsScanning(true);
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
-            // Start scanning for NFC tags
-            await NFC.startScanningAsync({
-                alertMessage: 'Hold your phone near the other device to pay',
-                invalidateAfterFirstRead: true,
-            });
-
-            // Listen for NFC tag discovery
-            NFC.addListener('tagDiscovered', async (tag) => {
-                try {
-                    // Parse the NFC tag data
-                    const paymentData = JSON.parse(tag.data);
-
-                    // Validate the payment data
-                    if (!paymentData.userId || !paymentData.userName) {
-                        throw new Error('Invalid payment data');
-                    }
-
-                    // Show confirmation dialog
-                    Alert.alert(
-                        'Confirm Payment',
-                        `Send ${amount} BTC to ${paymentData.userName}?`,
-                        [
-                            {
-                                text: 'Cancel',
-                                style: 'cancel',
-                                onPress: () => {
-                                    setIsScanning(false);
-                                    NFC.stopScanningAsync();
-                                }
-                            },
-                            {
-                                text: 'Send',
-                                onPress: async () => {
-                                    try {
-                                        // Make API call to transfer funds
-                                        const response = await axios.post(
-                                            `${apiEndpoint}/api/transaction/send`,
-                                            {
-                                                amount: parseFloat(amount),
-                                                receiverId: paymentData.userId,
-                                                description: note || 'NFC payment'
-                                            },
-                                            {
-                                                headers: {
-                                                    'Authorization': `Bearer ${user.token}`
-                                                }
-                                            }
-                                        );
-
-                                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                                        Alert.alert('Success', 'Payment sent successfully!');
-                                        router.back();
-                                    } catch (error) {
-                                        console.error('Payment error:', error);
-                                        Alert.alert('Error', 'Failed to send payment');
-                                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-                                    }
-                                }
-                            }
-                        ]
-                    );
-                } catch (error) {
-                    console.error('Error processing NFC tag:', error);
-                    Alert.alert('Error', 'Failed to read payment data');
-                    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-                }
-            });
-
+            // Simulate network scanning delay
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            setDevices(demoDevices);
         } catch (error) {
-            console.error('Error starting NFC scan:', error);
-            Alert.alert('Error', 'Failed to start NFC scanning');
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+            console.error('Error scanning network:', error);
+            Alert.alert('Error', 'Failed to scan for devices');
         } finally {
+            setIsLoading(false);
             setIsScanning(false);
         }
     };
 
-    // Stop NFC scanning
-    const stopScanning = async () => {
-        try {
-            await NFC.stopScanningAsync();
-            setIsScanning(false);
-        } catch (error) {
-            console.error('Error stopping NFC scan:', error);
+    // Calculate USD equivalent whenever amount changes
+    useEffect(() => {
+        if (amount && !isNaN(parseFloat(amount)) && btcToUsd) {
+            const btcAmount = parseFloat(amount);
+            const usdValue = (btcAmount * btcToUsd).toFixed(2);
+            setUsdAmount(usdValue);
+        } else {
+            setUsdAmount('0.00');
         }
+    }, [amount, btcToUsd]);
+
+    const handleBack = () => {
+        router.back();
     };
 
-    // Start broadcasting payment data
-    const startBroadcasting = async () => {
-        if (!isNFCEnabled || !amount || parseFloat(amount) <= 0) return;
+    const handlePay = async () => {
+        if (!selectedDevice || !amount || parseFloat(amount) <= 0) return;
 
         try {
             setIsLoading(true);
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            // Simulate payment processing delay
+            await new Promise(resolve => setTimeout(resolve, 2000));
 
-            // Create payment data
-            const paymentData = {
-                userId: user.userID,
-                userName: user.userFullName,
-                amount: parseFloat(amount),
-                note: note,
-                timestamp: new Date().toISOString(),
-            };
-
-            // Start broadcasting NFC tag
-            await NFC.startScanningAsync({
-                alertMessage: 'Hold your phone near the other device to receive payment',
-                invalidateAfterFirstRead: true,
-            });
-
-            // Write payment data to NFC tag
-            await NFC.writeTagAsync({
-                type: 'NDEF',
-                data: JSON.stringify(paymentData),
-            });
-
+            Alert.alert('Success', 'Payment sent successfully!');
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        } catch (error) {
-            console.error('Error broadcasting payment:', error);
-            Alert.alert('Error', 'Failed to broadcast payment data');
+            router.back();
+        } catch (error: any) {
+            console.error('Error sending payment:', error);
+            Alert.alert('Error', 'Failed to send payment');
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         } finally {
             setIsLoading(false);
-            stopScanning();
         }
-    };
-
-    const handleBack = () => {
-        stopScanning();
-        router.back();
     };
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-            <StatusBar style={isDarkMode ? "light" : "dark"} />
-
-            {/* Top Bar */}
-            <View style={styles.topBar}>
-                <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+            <StatusBar style={isDarkMode ? 'light' : 'dark'} />
+            <View style={styles.header}>
+                <TouchableOpacity
+                    onPress={handleBack}
+                    style={styles.backButton}
+                >
                     <Ionicons name="arrow-back" size={24} color={colors.text} />
                 </TouchableOpacity>
-                <Text style={[styles.screenTitle, { color: colors.text }]}>Quick Pay</Text>
-                <View style={styles.placeholder} />
+                <Text style={[styles.headerTitle, { color: colors.text }]}>Quick Pay</Text>
             </View>
 
-            <View style={styles.contentContainer}>
-                {/* Amount Input */}
-                <View style={[styles.inputContainer, { backgroundColor: colors.card }]}>
-                    <Text style={[styles.label, { color: colors.textSecondary }]}>
-                        Amount (BTC)
+            <View style={styles.content}>
+                <View style={styles.inputContainer}>
+                    <Text style={[styles.label, { color: colors.text }]}>Amount (BTC)</Text>
+                    <TextInput
+                        style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+                        value={amount}
+                        onChangeText={setAmount}
+                        keyboardType="decimal-pad"
+                        placeholder="0.00000000"
+                        placeholderTextColor={colors.text + '80'}
+                    />
+                    <Text style={[styles.usdAmount, { color: colors.text }]}>
+                        ≈ ${usdAmount} USD
                     </Text>
-                    <View style={styles.amountInputWrapper}>
-                        <TextInput
-                            style={[styles.amountInput, { color: colors.text, borderColor: colors.border }]}
-                            placeholder="0.0"
-                            placeholderTextColor={colors.textSecondary}
-                            keyboardType="decimal-pad"
-                            value={amount}
-                            onChangeText={setAmount}
-                        />
-                        <Text style={[styles.btcLabel, { color: colors.primary }]}>BTC</Text>
-                    </View>
                 </View>
 
-                {/* Note Input */}
-                <View style={[styles.inputContainer, { backgroundColor: colors.card }]}>
-                    <Text style={[styles.label, { color: colors.textSecondary }]}>
-                        Note (Optional)
-                    </Text>
+                <View style={styles.inputContainer}>
+                    <Text style={[styles.label, { color: colors.text }]}>Note (optional)</Text>
                     <TextInput
-                        style={[styles.noteInput, { color: colors.text, borderColor: colors.border }]}
-                        placeholder="Add a note..."
-                        placeholderTextColor={colors.textSecondary}
+                        style={[styles.input, { color: colors.text, borderColor: colors.border }]}
                         value={note}
                         onChangeText={setNote}
-                        multiline
+                        placeholder="Add a note"
+                        placeholderTextColor={colors.text + '80'}
                     />
                 </View>
 
-                {/* NFC Status */}
-                <View style={[styles.nfcStatusContainer, { backgroundColor: colors.card }]}>
-                    <Ionicons
-                        name={isNFCEnabled ? "radio" : "radio-outline"}
-                        size={24}
-                        color={isNFCEnabled ? colors.primary : colors.textSecondary}
+                <View style={styles.devicesContainer}>
+                    <View style={styles.devicesHeader}>
+                        <Text style={[styles.devicesTitle, { color: colors.text }]}>Nearby Devices</Text>
+                        <TouchableOpacity
+                            onPress={scanNetwork}
+                            disabled={isLoading || isScanning}
+                            style={[styles.refreshButton, { opacity: isLoading || isScanning ? 0.5 : 1 }]}
+                        >
+                            <Ionicons
+                                name={isScanning ? "scan" : "refresh"}
+                                size={24}
+                                color={colors.text}
+                            />
+                        </TouchableOpacity>
+                    </View>
+
+                    {isLoading && (
+                        <View style={styles.loadingContainer}>
+                            <ActivityIndicator color={colors.primary} />
+                            <Text style={[styles.loadingText, { color: colors.text }]}>Scanning for devices...</Text>
+                        </View>
+                    )}
+
+                    {!isLoading && devices.length === 0 && (
+                        <Text style={[styles.noDevicesText, { color: colors.text }]}>
+                            No devices found. Tap refresh to scan again.
+                        </Text>
+                    )}
+
+                    <FlatList
+                        data={devices}
+                        keyExtractor={(item) => item.id}
+                        renderItem={({ item }) => (
+                            <TouchableOpacity
+                                style={[
+                                    styles.deviceItem,
+                                    { backgroundColor: colors.card },
+                                    selectedDevice?.id === item.id && { borderColor: colors.primary }
+                                ]}
+                                onPress={() => setSelectedDevice(item)}
+                            >
+                                <Ionicons name="phone-portrait" size={24} color={colors.text} />
+                                <View style={styles.deviceInfo}>
+                                    <Text style={[styles.deviceName, { color: colors.text }]}>
+                                        {item.name}
+                                    </Text>
+                                    <Text style={[styles.deviceIP, { color: colors.text + '80' }]}>
+                                        {item.ip}
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
+                        )}
+                        contentContainerStyle={styles.devicesList}
                     />
-                    <Text style={[styles.nfcStatusText, { color: isNFCEnabled ? colors.primary : colors.textSecondary }]}>
-                        {isNFCEnabled ? 'NFC Ready' : 'NFC Not Available'}
-                    </Text>
                 </View>
 
-                {/* Action Buttons */}
-                <View style={styles.actionButtons}>
-                    {/* Send Button */}
+                {selectedDevice && (
                     <TouchableOpacity
-                        style={[
-                            styles.actionButton,
-                            { backgroundColor: colors.primary },
-                            (!amount || parseFloat(amount) <= 0) && styles.disabledButton
-                        ]}
-                        onPress={startScanning}
-                        disabled={!amount || parseFloat(amount) <= 0 || isScanning}
+                        style={[styles.payButton, { backgroundColor: colors.primary }]}
+                        onPress={handlePay}
+                        disabled={!amount || parseFloat(amount) <= 0}
                     >
-                        {isScanning ? (
-                            <ActivityIndicator color="#ffffff" />
-                        ) : (
-                            <>
-                                <Ionicons name="send" size={20} color="#ffffff" style={styles.buttonIcon} />
-                                <Text style={styles.buttonText}>Send Payment</Text>
-                            </>
-                        )}
+                        <Text style={styles.payButtonText}>
+                            Pay {amount} BTC to {selectedDevice.name}
+                        </Text>
                     </TouchableOpacity>
-
-                    {/* Receive Button */}
-                    <TouchableOpacity
-                        style={[
-                            styles.actionButton,
-                            { backgroundColor: colors.success },
-                            (!amount || parseFloat(amount) <= 0) && styles.disabledButton
-                        ]}
-                        onPress={startBroadcasting}
-                        disabled={!amount || parseFloat(amount) <= 0 || isLoading}
-                    >
-                        {isLoading ? (
-                            <ActivityIndicator color="#ffffff" />
-                        ) : (
-                            <>
-                                <Ionicons name="download" size={20} color="#ffffff" style={styles.buttonIcon} />
-                                <Text style={styles.buttonText}>Receive Payment</Text>
-                            </>
-                        )}
-                    </TouchableOpacity>
-                </View>
-
-                {/* Instructions */}
-                <View style={styles.instructionsContainer}>
-                    <Text style={[styles.instructionsText, { color: colors.textSecondary }]}>
-                        {isScanning
-                            ? 'Hold your phone near the other device to send payment'
-                            : 'Enter amount and tap Send to pay or Receive to get paid'}
-                    </Text>
-                </View>
+                )}
             </View>
         </SafeAreaView>
     );
-};
+}
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    topBar: {
+    header: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 16,
-        paddingHorizontal: 16,
+        padding: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
     },
     backButton: {
-        padding: 8,
+        marginRight: 16,
     },
-    screenTitle: {
+    headerTitle: {
         fontSize: 20,
         fontWeight: 'bold',
     },
-    placeholder: {
-        width: 40,
-    },
-    contentContainer: {
+    content: {
         flex: 1,
         padding: 16,
     },
     inputContainer: {
-        padding: 16,
-        borderRadius: 12,
-        marginBottom: 16,
+        marginBottom: 24,
     },
     label: {
-        fontSize: 14,
+        fontSize: 16,
         marginBottom: 8,
     },
-    amountInputWrapper: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    amountInput: {
-        flex: 1,
-        height: 60,
-        fontSize: 24,
-        paddingHorizontal: 16,
+    input: {
         borderWidth: 1,
-        borderRadius: 12,
-        textAlign: 'center',
+        borderRadius: 8,
+        padding: 12,
+        fontSize: 16,
     },
-    btcLabel: {
-        position: 'absolute',
-        right: 15,
+    usdAmount: {
+        fontSize: 14,
+        marginTop: 4,
+    },
+    devicesContainer: {
+        flex: 1,
+        marginBottom: 24,
+    },
+    devicesHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    devicesTitle: {
         fontSize: 18,
         fontWeight: 'bold',
     },
-    noteInput: {
-        height: 100,
-        padding: 12,
-        borderWidth: 1,
-        borderRadius: 12,
-        textAlignVertical: 'top',
+    refreshButton: {
+        padding: 8,
     },
-    nfcStatusContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 16,
-        borderRadius: 12,
-        marginBottom: 24,
-    },
-    nfcStatusText: {
-        marginLeft: 12,
-        fontSize: 16,
-        fontWeight: '500',
-    },
-    actionButtons: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 16,
-    },
-    actionButton: {
-        flex: 1,
+    loadingContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        height: 56,
-        borderRadius: 12,
-        marginHorizontal: 8,
-    },
-    disabledButton: {
-        opacity: 0.7,
-    },
-    buttonIcon: {
-        marginRight: 8,
-    },
-    buttonText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    instructionsContainer: {
         padding: 16,
+    },
+    loadingText: {
+        marginLeft: 8,
+        fontSize: 16,
+    },
+    noDevicesText: {
+        textAlign: 'center',
+        fontSize: 16,
+        marginTop: 16,
+    },
+    devicesList: {
+        paddingBottom: 16,
+    },
+    deviceItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+        borderRadius: 8,
+        marginBottom: 8,
+        borderWidth: 1,
+        borderColor: '#eee',
+    },
+    deviceInfo: {
+        marginLeft: 12,
+        flex: 1,
+    },
+    deviceName: {
+        fontSize: 16,
+        fontWeight: '500',
+    },
+    deviceIP: {
+        fontSize: 14,
+        marginTop: 2,
+    },
+    payButton: {
+        padding: 16,
+        borderRadius: 8,
         alignItems: 'center',
     },
-    instructionsText: {
-        textAlign: 'center',
-        fontSize: 14,
-        lineHeight: 20,
+    payButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });
 
 export default QuickPayScreen;
+

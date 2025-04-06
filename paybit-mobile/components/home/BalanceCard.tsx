@@ -242,6 +242,9 @@ const styles = StyleSheet.create({
     refreshButton: {
         marginLeft: 6,
         padding: 4,
+        fontSize: 24,
+        color: "#FFFFFF",
+        opacity: 0.6,
     },
 });
 

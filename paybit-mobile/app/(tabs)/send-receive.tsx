@@ -9,7 +9,8 @@ import {
     ScrollView,
     ActivityIndicator,
     Image,
-    FlatList
+    FlatList,
+    AlertButton
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -54,6 +55,16 @@ interface MoneyRequest {
     };
 }
 
+interface UserData {
+    id: string;
+    fullname: string;
+    email: string;
+    uid: string;
+    profileImage?: string;
+    token?: string;
+    btcToUsd?: number;
+}
+
 const SendReceiveScreen = () => {
     const insets = useSafeAreaInsets();
     const router = useRouter();
@@ -69,10 +80,13 @@ const SendReceiveScreen = () => {
     // Loading states
     const [isLoading, setIsLoading] = useState(false);
     const [isContactsLoading, setIsContactsLoading] = useState(true);
+    const [isRequestsLoading, setIsRequestsLoading] = useState(true);
 
     // Data states
     const [contacts, setContacts] = useState<Contact[]>([]);
     const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+    const [sentRequests, setSentRequests] = useState<MoneyRequest[]>([]);
+    const [receivedRequests, setReceivedRequests] = useState<MoneyRequest[]>([]);
 
     // Fetch contacts from backend
     useEffect(() => {
@@ -99,6 +113,51 @@ const SendReceiveScreen = () => {
         };
 
         fetchContacts();
+    }, [user.token]);
+
+    // Fetch requests from backend
+    useEffect(() => {
+        const fetchRequests = async () => {
+            if (!user.token) return;
+
+            setIsRequestsLoading(true);
+            try {
+                // Fetch sent requests
+                const sentResponse = await axios.get(`${apiEndpoint}/api/user/requests`, {
+                    headers: {
+                        'x-auth-token': user.token,
+                        'Authorization': `Bearer ${user.token}`
+                    },
+                    params: {
+                        sender: 'me'
+                    }
+                });
+
+                // Fetch received requests
+                const receivedResponse = await axios.get(`${apiEndpoint}/api/user/requests`, {
+                    headers: {
+                        'x-auth-token': user.token,
+                        'Authorization': `Bearer ${user.token}`
+                    },
+                    params: {
+                        type: 'received'
+                    }
+                });
+
+                if (sentResponse.data.success) {
+                    setSentRequests(sentResponse.data.data.requests);
+                }
+                if (receivedResponse.data.success) {
+                    setReceivedRequests(receivedResponse.data.data.requests);
+                }
+            } catch (error) {
+                console.error('Error fetching requests:', error);
+            } finally {
+                setIsRequestsLoading(false);
+            }
+        };
+
+        fetchRequests();
     }, [user.token]);
 
     // Calculate USD equivalent whenever amount changes
@@ -137,8 +196,7 @@ const SendReceiveScreen = () => {
                                 `${apiEndpoint}/api/transaction/send`,
                                 {
                                     amount: parseFloat(amount),
-                                    recipientId: selectedContact ? selectedContact.contactUid : address,
-                                    description: note || "Transfer from mobile app"
+                                    recipientMail: selectedContact ? selectedContact.user.email : address,
                                 },
                                 {
                                     headers: {
@@ -195,12 +253,10 @@ const SendReceiveScreen = () => {
                     onPress: async () => {
                         setIsLoading(true);
                         try {
-                            // Call money request API endpoint
-                            const response = await axios.post(
-                                `${apiEndpoint}/api/transaction/request`,
+                            const response = await axios.post(`${apiEndpoint}/api/user/request`,
                                 {
                                     amount: parseFloat(amount),
-                                    senderId: selectedContact ? selectedContact.contactUid : address,
+                                    email: selectedContact ? selectedContact.user.email : address,
                                     description: note || "Payment request from mobile app"
                                 },
                                 {
@@ -265,7 +321,7 @@ const SendReceiveScreen = () => {
                         try {
                             const response = await axios.post(
                                 `${apiEndpoint}/api/user/contacts`,
-                                { contactUid: address },
+                                { email: address },
                                 {
                                     headers: {
                                         'x-auth-token': user.token,
@@ -308,6 +364,85 @@ const SendReceiveScreen = () => {
         );
     };
 
+    const handlePayRequest = async (request: MoneyRequest) => {
+        if (!request.requester.email) {
+            Alert.alert("Error", "Cannot process payment: Recipient email is missing");
+            return;
+        }
+
+        Alert.alert(
+            "Confirm Payment",
+            `Are you sure you want to pay ${request.amount.toFixed(8)} BTC (≈$${(request.amount * btcToUsd).toFixed(2)}) to ${request.requester.email}?`,
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Pay",
+                    onPress: async () => {
+                        setIsLoading(true);
+                        try {
+                            const response = await axios.post(
+                                `${apiEndpoint}/api/transaction/send`,
+                                {
+                                    amount: request.amount,
+                                    recipientMail: request.requester.email,
+                                    requestID: request.id,
+                                    senderEmail: user.userEmail
+                                },
+                                {
+                                    headers: {
+                                        'x-auth-token': user.token,
+                                        'Authorization': `Bearer ${user.token}`
+                                    }
+                                }
+                            );
+
+                            if (response.data.success) {
+                                Alert.alert(
+                                    "Success",
+                                    "Payment completed successfully!",
+                                    [{
+                                        text: "OK", onPress: () => {
+                                            // Refresh requests after payment
+                                            const fetchRequests = async () => {
+                                                try {
+                                                    const receivedResponse = await axios.get(`${apiEndpoint}/api/user/requests`, {
+                                                        headers: {
+                                                            'x-auth-token': user.token,
+                                                            'Authorization': `Bearer ${user.token}`
+                                                        },
+                                                        params: {
+                                                            type: 'received'
+                                                        }
+                                                    });
+
+                                                    if (receivedResponse.data.success) {
+                                                        setReceivedRequests(receivedResponse.data.data.requests);
+                                                    }
+                                                } catch (error) {
+                                                    console.error('Error refreshing requests:', error);
+                                                }
+                                            };
+                                            fetchRequests();
+                                        }
+                                    }]
+                                );
+                            } else {
+                                throw new Error(response.data.message || "Payment failed");
+                            }
+                        } catch (error: any) {
+                            Alert.alert(
+                                "Error",
+                                error.response?.data?.message || "Failed to complete payment"
+                            );
+                        } finally {
+                            setIsLoading(false);
+                        }
+                    },
+                },
+            ],
+        );
+    };
+
     const renderContactItem = ({ item }: { item: Contact }) => {
         const isSelected = selectedContact?.id === item.id;
 
@@ -341,6 +476,72 @@ const SendReceiveScreen = () => {
                     <Text style={[styles.contactEmail, { color: colors.textSecondary }]}>
                         {item.user.email}
                     </Text>
+                </View>
+            </TouchableOpacity>
+        );
+    };
+
+    const renderRequestItem = ({ item }: { item: MoneyRequest }) => {
+        const isReceived = item.sender.email === user.userEmail;
+        const counterparty = isReceived ? item.requester : item.sender;
+        const amount = item.amount.toFixed(8);
+        const usdValue = (item.amount * btcToUsd).toFixed(2);
+
+        const handlePress = () => {
+            if (isReceived) {
+                handlePayRequest(item);
+            } else {
+                Alert.alert(
+                    "Request Details",
+                    `Sent to ${counterparty.fullname}\nAmount: ${amount} BTC (≈$${usdValue})\nStatus: ${item.isResolved ? 'Resolved' : 'Pending'}`
+                );
+            }
+        };
+
+        return (
+            <TouchableOpacity
+                style={[styles.requestItem, { backgroundColor: colors.card }]}
+                onPress={handlePress}
+            >
+                <View style={styles.requestAvatar}>
+                    {counterparty.profileImage ? (
+                        <Image
+                            source={{ uri: getImageUrl(counterparty.profileImage) }}
+                            style={styles.requestAvatarImage}
+                        />
+                    ) : (
+                        <Text style={[styles.requestInitial, { color: colors.text }]}>
+                            {counterparty.fullname.charAt(0).toUpperCase()}
+                        </Text>
+                    )}
+                </View>
+                <View style={styles.requestInfo}>
+                    <Text style={[styles.requestName, { color: colors.text }]}>
+                        {counterparty.fullname}
+                    </Text>
+                    <Text style={[styles.requestAmount, { color: colors.primary }]}>
+                        {amount} BTC (≈${usdValue})
+                    </Text>
+                </View>
+                <View style={styles.requestActions}>
+                    {isReceived ? (
+                        <TouchableOpacity
+                            style={[styles.payButton, { backgroundColor: colors.primary }]}
+                            onPress={() => handlePayRequest(item)}
+                            disabled={isLoading}
+                        >
+                            <Text style={styles.payButtonText}>Pay Now</Text>
+                        </TouchableOpacity>
+                    ) : (
+                        <View style={[
+                            styles.requestStatus,
+                            { backgroundColor: item.isResolved ? colors.success : colors.primary }
+                        ]}>
+                            <Text style={styles.requestStatusText}>
+                                {item.isResolved ? 'Resolved' : 'Pending'}
+                            </Text>
+                        </View>
+                    )}
                 </View>
             </TouchableOpacity>
         );
@@ -389,158 +590,202 @@ const SendReceiveScreen = () => {
                 </TouchableOpacity>
             </View>
 
-            <ScrollView
+            <FlatList
                 style={styles.contentContainer}
                 contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 80 }]}
-            >
-                <BlurView intensity={20} tint={isDarkMode ? "dark" : "light"} style={styles.formContainer}>
-                    <View style={styles.inputGroup}>
-                        <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Amount (BTC)</Text>
-                        <View style={[styles.amountContainer, { backgroundColor: colors.border }]}>
-                            <TextInput
-                                style={[styles.amountInput, { color: colors.text }]}
-                                value={amount}
-                                onChangeText={setAmount}
-                                placeholder="0.00"
-                                placeholderTextColor={colors.textSecondary}
-                                keyboardType="decimal-pad"
-                            />
-                            <Text style={[styles.btcLabel, { color: colors.primary }]}>BTC</Text>
-                        </View>
-                        <Text style={[styles.usdEquivalent, { color: colors.textSecondary }]}>≈ ${usdAmount} USD</Text>
-                    </View>
-
-                    <View style={styles.inputGroup}>
-                        <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>
-                            {activeTab === 'send' ? 'Recipient' : 'Request From'}
-                        </Text>
-
-                        {selectedContact ? (
-                            <View style={[styles.selectedContactContainer, { backgroundColor: colors.border }]}>
-                                <View style={styles.selectedContactInfo}>
-                                    {selectedContact.user.profileImage ? (
-                                        <Image
-                                            source={{ uri: getImageUrl(selectedContact.user.profileImage) }}
-                                            style={styles.selectedContactAvatar}
-                                        />
-                                    ) : (
-                                        <View style={[styles.selectedContactInitials, { backgroundColor: colors.primary }]}>
-                                            <Text style={styles.selectedContactInitialsText}>
-                                                {selectedContact.user.fullname.charAt(0).toUpperCase()}
-                                            </Text>
-                                        </View>
-                                    )}
-                                    <View style={styles.selectedContactTextContainer}>
-                                        <Text style={[styles.selectedContactName, { color: colors.text }]}>
-                                            {selectedContact.user.fullname}
-                                        </Text>
-                                        <Text style={[styles.selectedContactEmail, { color: colors.textSecondary }]}>
-                                            {selectedContact.user.email}
-                                        </Text>
-                                    </View>
+                data={[1]} // Dummy data to render once
+                renderItem={() => (
+                    <>
+                        <BlurView intensity={20} tint={isDarkMode ? "dark" : "light"} style={styles.formContainer}>
+                            <View style={styles.inputGroup}>
+                                <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Amount (BTC)</Text>
+                                <View style={[styles.amountContainer, { backgroundColor: colors.border }]}>
+                                    <TextInput
+                                        style={[styles.amountInput, { color: colors.text }]}
+                                        value={amount}
+                                        onChangeText={setAmount}
+                                        placeholder="0.00"
+                                        placeholderTextColor={colors.textSecondary}
+                                        keyboardType="decimal-pad"
+                                    />
+                                    <Text style={[styles.btcLabel, { color: colors.primary }]}>BTC</Text>
                                 </View>
-                                <TouchableOpacity
-                                    style={styles.clearButton}
-                                    onPress={() => setSelectedContact(null)}
-                                >
-                                    <Ionicons name="close-circle" size={24} color={colors.textSecondary} />
-                                </TouchableOpacity>
+                                <Text style={[styles.usdEquivalent, { color: colors.textSecondary }]}>≈ ${usdAmount} USD</Text>
                             </View>
-                        ) : (
-                            <View style={[styles.addressInputContainer, { backgroundColor: colors.border }]}>
+
+                            <View style={styles.inputGroup}>
+                                <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>
+                                    {activeTab === 'send' ? 'Recipient' : 'Request From'}
+                                </Text>
+
+                                {selectedContact ? (
+                                    <View style={[styles.selectedContactContainer, { backgroundColor: colors.border }]}>
+                                        <View style={styles.selectedContactInfo}>
+                                            {selectedContact.user.profileImage ? (
+                                                <Image
+                                                    source={{ uri: getImageUrl(selectedContact.user.profileImage) }}
+                                                    style={styles.selectedContactAvatar}
+                                                />
+                                            ) : (
+                                                <View style={[styles.selectedContactInitials, { backgroundColor: colors.primary }]}>
+                                                    <Text style={styles.selectedContactInitialsText}>
+                                                        {selectedContact.user.fullname.charAt(0).toUpperCase()}
+                                                    </Text>
+                                                </View>
+                                            )}
+                                            <View style={styles.selectedContactTextContainer}>
+                                                <Text style={[styles.selectedContactName, { color: colors.text }]}>
+                                                    {selectedContact.user.fullname}
+                                                </Text>
+                                                <Text style={[styles.selectedContactEmail, { color: colors.textSecondary }]}>
+                                                    {selectedContact.user.email}
+                                                </Text>
+                                            </View>
+                                        </View>
+                                        <TouchableOpacity
+                                            style={styles.clearButton}
+                                            onPress={() => setSelectedContact(null)}
+                                        >
+                                            <Ionicons name="close-circle" size={24} color={colors.textSecondary} />
+                                        </TouchableOpacity>
+                                    </View>
+                                ) : (
+                                    <View style={[styles.addressInputContainer, { backgroundColor: colors.border }]}>
+                                        <TextInput
+                                            style={[styles.addressInput, { color: colors.text }]}
+                                            value={address}
+                                            onChangeText={handleAddressChange}
+                                            placeholder={activeTab === 'send' ? "Enter User Email" : "Enter User Email"}
+                                            placeholderTextColor={colors.textSecondary}
+                                            keyboardType="email-address"
+                                            autoCapitalize="none"
+                                        />
+                                        <View style={styles.addressButtons}>
+                                            <TouchableOpacity
+                                                style={styles.addressButton}
+                                                onPress={handleAddContact}
+                                            >
+                                                <Ionicons name="person-add-outline" size={20} color={colors.text} />
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                )}
+                            </View>
+
+                            <View style={styles.inputGroup}>
+                                <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Note (Optional)</Text>
                                 <TextInput
-                                    style={[styles.addressInput, { color: colors.text }]}
-                                    value={address}
-                                    onChangeText={handleAddressChange}
-                                    placeholder={activeTab === 'send' ? "Enter User Email" : "Enter User Email"}
+                                    style={[styles.noteInput, { color: colors.text, backgroundColor: colors.border }]}
+                                    value={note}
+                                    onChangeText={setNote}
+                                    placeholder="Add a note"
                                     placeholderTextColor={colors.textSecondary}
+                                    multiline
                                 />
-                                <View style={styles.addressButtons}>
-                                    <TouchableOpacity
-                                        style={styles.addressButton}
-                                        onPress={handleAddContact}
-                                    >
-                                        <Ionicons name="person-add-outline" size={20} color={colors.text} />
-                                    </TouchableOpacity>
-                                    <TouchableOpacity style={styles.scanButton}>
-                                        <Ionicons name="qr-code-outline" size={20} color={colors.text} />
-                                    </TouchableOpacity>
-                                </View>
+                            </View>
+
+                            <TouchableOpacity
+                                style={[styles.actionButton, isLoading && styles.disabledButton]}
+                                onPress={activeTab === 'send' ? handleSend : handleRequest}
+                                disabled={isLoading}
+                            >
+                                <LinearGradient
+                                    colors={['#F7931A', '#E87B0E']}
+                                    style={styles.gradientButton}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 0 }}
+                                >
+                                    {isLoading ? (
+                                        <ActivityIndicator color="#FFFFFF" size="small" />
+                                    ) : (
+                                        <>
+                                            <Ionicons
+                                                name={activeTab === 'send' ? "arrow-up-circle" : "arrow-down-circle"}
+                                                size={20}
+                                                color="#FFFFFF"
+                                                style={styles.buttonIcon}
+                                            />
+                                            <Text style={styles.actionButtonText}>
+                                                {activeTab === 'send' ? 'Send Bitcoin' : 'Request Bitcoin'}
+                                            </Text>
+                                        </>
+                                    )}
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        </BlurView>
+
+                        {activeTab === 'request' && (
+                            <View style={styles.requestsSection}>
+                                <Text style={[styles.sectionTitle, { color: colors.text }]}>Received Requests</Text>
+                                {isRequestsLoading ? (
+                                    <ActivityIndicator size="small" color={colors.primary} style={styles.loader} />
+                                ) : sentRequests.length > 0 ? (
+                                    <FlatList
+                                        data={sentRequests}
+                                        renderItem={renderRequestItem}
+                                        keyExtractor={(item) => item.id}
+                                        scrollEnabled={false}
+                                        style={styles.requestsList}
+                                    />
+                                ) : (
+                                    <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                                        No received requests
+                                    </Text>
+                                )}
+
+                                <Text style={[styles.sectionTitle, { color: colors.text }]}>Sent Requests</Text>
+                                {isRequestsLoading ? (
+                                    <ActivityIndicator size="small" color={colors.primary} style={styles.loader} />
+                                ) : receivedRequests.length > 0 ? (
+                                    <FlatList
+                                        data={receivedRequests}
+                                        renderItem={renderRequestItem}
+                                        keyExtractor={(item) => item.id}
+                                        scrollEnabled={false}
+                                        style={styles.requestsList}
+                                    />
+                                ) : (
+                                    <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                                        No sent requests
+                                    </Text>
+                                )}
                             </View>
                         )}
-                    </View>
 
-                    <View style={styles.inputGroup}>
-                        <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Note (Optional)</Text>
-                        <TextInput
-                            style={[styles.noteInput, { color: colors.text, backgroundColor: colors.border }]}
-                            value={note}
-                            onChangeText={setNote}
-                            placeholder="Add a note"
-                            placeholderTextColor={colors.textSecondary}
-                            multiline
-                        />
-                    </View>
+                        {activeTab === 'send' && (
+                            <View style={styles.contactsSection}>
+                                <Text style={[styles.contactsTitle, { color: colors.text }]}>
+                                    Send To
+                                </Text>
 
-                    <TouchableOpacity
-                        style={[styles.actionButton, isLoading && styles.disabledButton]}
-                        onPress={activeTab === 'send' ? handleSend : handleRequest}
-                        disabled={isLoading}
-                    >
-                        <LinearGradient
-                            colors={['#F7931A', '#E87B0E']}
-                            style={styles.gradientButton}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                        >
-                            {isLoading ? (
-                                <ActivityIndicator color="#FFFFFF" size="small" />
-                            ) : (
-                                <>
-                                    <Ionicons
-                                        name={activeTab === 'send' ? "arrow-up-circle" : "arrow-down-circle"}
-                                        size={20}
-                                        color="#FFFFFF"
-                                        style={styles.buttonIcon}
+                                {isContactsLoading ? (
+                                    <ActivityIndicator size="small" color={colors.primary} style={styles.contactsLoader} />
+                                ) : contacts.length > 0 ? (
+                                    <FlatList
+                                        data={contacts}
+                                        renderItem={renderContactItem}
+                                        keyExtractor={(item) => item.id}
+                                        horizontal={false}
+                                        showsVerticalScrollIndicator={false}
+                                        style={styles.contactsList}
                                     />
-                                    <Text style={styles.actionButtonText}>
-                                        {activeTab === 'send' ? 'Send Bitcoin' : 'Request Bitcoin'}
-                                    </Text>
-                                </>
-                            )}
-                        </LinearGradient>
-                    </TouchableOpacity>
-                </BlurView>
-
-                <View style={styles.contactsSection}>
-                    <Text style={[styles.contactsTitle, { color: colors.text }]}>
-                        {activeTab === 'send' ? 'Send To' : 'Request From'}
-                    </Text>
-
-                    {isContactsLoading ? (
-                        <ActivityIndicator size="small" color={colors.primary} style={styles.contactsLoader} />
-                    ) : contacts.length > 0 ? (
-                        <FlatList
-                            data={contacts}
-                            renderItem={renderContactItem}
-                            keyExtractor={(item) => item.id}
-                            horizontal={false}
-                            showsVerticalScrollIndicator={false}
-                            style={styles.contactsList}
-                        />
-                    ) : (
-                        <View style={styles.emptyContactsContainer}>
-                            <Ionicons name="people-outline" size={48} color={colors.textSecondary} />
-                            <Text style={[styles.emptyContactsText, { color: colors.textSecondary }]}>
-                                No contacts yet
-                            </Text>
-                            <Text style={[styles.emptyContactsSubtext, { color: colors.textSecondary }]}>
-                                Add contacts to quickly send and request Bitcoin
-                            </Text>
-                        </View>
-                    )}
-                </View>
-            </ScrollView>
+                                ) : (
+                                    <View style={styles.emptyContactsContainer}>
+                                        <Ionicons name="people-outline" size={48} color={colors.textSecondary} />
+                                        <Text style={[styles.emptyContactsText, { color: colors.textSecondary }]}>
+                                            No contacts yet
+                                        </Text>
+                                        <Text style={[styles.emptyContactsSubtext, { color: colors.textSecondary }]}>
+                                            Add contacts to quickly send and request Bitcoin
+                                        </Text>
+                                    </View>
+                                )}
+                            </View>
+                        )}
+                    </>
+                )}
+                keyExtractor={() => 'main-content'}
+            />
         </SafeAreaView>
     );
 };
@@ -794,6 +1039,89 @@ const styles = StyleSheet.create({
     },
     clearButton: {
         padding: 4,
+    },
+    requestsSection: {
+        marginTop: 20,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 16,
+    },
+    requestsList: {
+        marginBottom: 24,
+    },
+    requestItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 12,
+        marginBottom: 8,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(100, 100, 100, 0.2)',
+    },
+    requestAvatar: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+        overflow: 'hidden',
+        backgroundColor: 'rgba(100, 100, 100, 0.2)',
+    },
+    requestAvatarImage: {
+        width: '100%',
+        height: '100%',
+    },
+    requestInitial: {
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    requestInfo: {
+        flex: 1,
+    },
+    requestName: {
+        fontSize: 16,
+        fontWeight: '600',
+        marginBottom: 2,
+    },
+    requestAmount: {
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    requestStatus: {
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 12,
+    },
+    requestStatusText: {
+        color: '#FFFFFF',
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    loader: {
+        marginVertical: 20,
+    },
+    emptyText: {
+        fontSize: 14,
+        textAlign: 'center',
+        marginVertical: 20,
+    },
+    requestActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    payButton: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 8,
+    },
+    payButtonText: {
+        color: '#FFFFFF',
+        fontSize: 14,
+        fontWeight: '600',
     },
 });
 

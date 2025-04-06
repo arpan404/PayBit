@@ -13,9 +13,9 @@ interface Transaction {
 }
 
 interface TransactionsListProps {
-  transactions: Transaction[];
-  onSeeAllPress: () => void;
-  onTransactionPress: (transaction: Transaction) => void;
+    transactions: Transaction[];
+    onSeeAllPress: () => void;
+    onTransactionPress: (transaction: Transaction) => void;
 }
 
 const TransactionItem: React.FC<{ transaction: Transaction; onPress: () => void }> = ({ transaction, onPress }) => {
@@ -26,11 +26,14 @@ const TransactionItem: React.FC<{ transaction: Transaction; onPress: () => void 
             style={[styles.transactionItem, { backgroundColor: colors.card }]}
             onPress={onPress}
         >
-            <View style={[styles.iconContainer, { backgroundColor: 'rgba(247, 147, 26, 0.1)' }]}>
+            <View style={[
+                styles.iconContainer,
+                { backgroundColor: transaction.type === 'received' ? 'rgba(92, 249, 35, 0.1)' : 'rgba(255, 59, 48, 0.1)' }
+            ]}>
                 <Ionicons
                     name={transaction.type === 'received' ? 'arrow-down' : 'arrow-up'}
                     size={24}
-                    color="#F7931A"
+                    color={transaction.type === 'received' ? '#00FF00' : '#FF3B30'}
                 />
             </View>
             <View style={styles.transactionInfo}>
