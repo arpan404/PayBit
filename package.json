@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "bitcoin-core": "^5.0.0"
+  }
+}

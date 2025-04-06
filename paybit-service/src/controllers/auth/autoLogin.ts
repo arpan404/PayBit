@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import User from "../../db/user";
+import getBitcoinBalance from "../../services/getBalance";
 
 // Auto Login: Refresh token
 export const autoLogin = async (req: Request, res: Response): Promise<void> => {
@@ -39,7 +40,7 @@ export const autoLogin = async (req: Request, res: Response): Promise<void> => {
     const jwtSecret = process.env.JWT_SECRET || "test-jwt-secret";
 
     // Create token
-    jwt.sign(payload, jwtSecret, { expiresIn: "7d" }, (err, token) => {
+    jwt.sign(payload, jwtSecret, { expiresIn: "7d" }, async(err, token) => {
       if (err) {
         console.error("Token error:", err);
         res.status(500).json({
@@ -49,7 +50,7 @@ export const autoLogin = async (req: Request, res: Response): Promise<void> => {
         });
         return;
       }
-
+      const balance = await getBitcoinBalance(String(user._id));
       // Prepare user data
       const userData = {
         uid: user.uid,
@@ -58,6 +59,7 @@ export const autoLogin = async (req: Request, res: Response): Promise<void> => {
         profileImage: user.profileImage,
         tapRootAddress: user.tapRootAddress,
         walletAddress: user.walletAddress,
+        balance: balance,
       };
 
       // Send response

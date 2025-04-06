@@ -40,7 +40,7 @@ const TransactionSchema: Schema = new Schema(
     amount: {
       type: Number,
       required: true,
-      min: 0.01,
+      min: 0.0,
     },
     status: {
       type: String,

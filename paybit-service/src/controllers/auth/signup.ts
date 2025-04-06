@@ -83,6 +83,7 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
       profileImage: newUser.profileImage,
       tapRootAddress: undefined as string | undefined,
       walletAddress: `user_wallet_${newUser._id}`,
+      balance: 0,
     };
 
     const tapRootAddress = await createWalletAndGenerateTaprootAddress(
@@ -96,10 +97,13 @@ export const signup = async (req: Request, res: Response): Promise<void> => {
       return;
     }
     // Update user with taproot address
-    newUser.tapRootAddress = tapRootAddress;
-    newUser.walletAddress = userData.walletAddress;
+    await User.findByIdAndUpdate(newUser._id, {
+      tapRootAddress: tapRootAddress,
+      walletAddress: userData.walletAddress
+    });
+    
+    // Update local user data for response
     userData.tapRootAddress = tapRootAddress;
-    await newUser.save();
 
     // Payload for JWT
     const payload = {

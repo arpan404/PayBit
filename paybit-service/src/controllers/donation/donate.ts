@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import DonationCampaign from "../../db/donation";
 import User from "../../db/user";
 import transferFunds from "../../services/transferFunds";
+import Transaction from "../../db/transaction";
 
 /**
  * Donate to Campaign Controller
@@ -53,12 +54,12 @@ export const donate = async (req: Request, res: Response): Promise<void> => {
     const donationAmount = Number(amount);
 
     // Add additional validation for donation amounts if needed
-    if (donationAmount < 1) {
+    if (donationAmount <= 0) {
       // Minimum donation amount
       res.status(400).json({
         success: false,
         code: "donate-e4",
-        message: "Minimum donation amount is 1",
+        message: "Minimum donation amount is 0",
       });
       return;
     }
@@ -138,7 +139,19 @@ export const donate = async (req: Request, res: Response): Promise<void> => {
 
     // Determine if campaign is now complete
     const isComplete = newCollectedAmount >= campaign.goalAmount;
-
+    await Transaction.create({
+        amount: donationAmount,
+        senderName: donorUser.fullname,
+        receiverName: campaign.name,
+        fromUserId: donorUser._id,
+        toUserId: creatorUser._id,
+        type: "donation",
+        campaignId: campaign._id,
+        campaignName: campaign.name,
+        status: "completed",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
     // Return successful response
     res.status(200).json({
       success: true,

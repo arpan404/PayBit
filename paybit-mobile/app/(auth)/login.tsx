@@ -215,135 +215,139 @@ const LoginScreen = () => {
   }
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <StatusBar style="light" />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
-        <View style={[styles.container, { paddingTop: insets.top }]}>
-          <StatusBar style="light" />
-
-          {/* Logo and Header */}
-          <View style={styles.header}>
-            <Image
-              source={require("../../assets/images/icon.png")}
-              style={styles.logo}
-            />
-            <Text style={styles.appName}>PayBit</Text>
-            <Text style={styles.tagline}>Effortless Bitcoin Transactions</Text>
-          </View>
-
-          {/* Login Form */}
-          <View style={styles.formContainer}>
-            <Text style={styles.formTitle}>Welcome Back</Text>
-
-            <View style={styles.inputContainer}>
-              <Ionicons
-                name="mail-outline"
-                size={20}
-                color="#F7931A"
-                style={styles.inputIcon}
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Logo and Header */}
+            <View style={styles.header}>
+              <Image
+                source={require("../../assets/images/icon.png")}
+                style={styles.logo}
               />
-              <TextInput
-                style={styles.input}
-                placeholder="Email Address"
-                placeholderTextColor="#666666"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
+              <Text style={styles.appName}>PayBit</Text>
+              <Text style={styles.tagline}>Effortless Bitcoin Transactions</Text>
             </View>
-            {emailError ? (
-              <Text style={styles.errorText}>{emailError}</Text>
-            ) : null}
 
-            <View style={styles.inputContainer}>
-              <Ionicons
-                name="lock-closed-outline"
-                size={20}
-                color="#F7931A"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Password"
-                placeholderTextColor="#666666"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-              />
-              <TouchableOpacity
-                style={styles.eyeButton}
-                onPress={() => setShowPassword(!showPassword)}
-              >
+            {/* Login Form */}
+            <View style={styles.formContainer}>
+              <Text style={styles.formTitle}>Welcome Back</Text>
+
+              <View style={styles.inputContainer}>
                 <Ionicons
-                  name={showPassword ? "eye-off-outline" : "eye-outline"}
+                  name="mail-outline"
                   size={20}
                   color="#F7931A"
+                  style={styles.inputIcon}
                 />
-              </TouchableOpacity>
-            </View>
-            {passwordError ? (
-              <Text style={styles.errorText}>{passwordError}</Text>
-            ) : null}
+                <TextInput
+                  style={styles.input}
+                  placeholder="Email Address"
+                  placeholderTextColor="#666666"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+              {emailError ? (
+                <Text style={styles.errorText}>{emailError}</Text>
+              ) : null}
 
-            <TouchableOpacity
-              style={styles.forgotPassword}
-              onPress={() => alert("Think Harder")}
-            >
-              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-            </TouchableOpacity>
+              <View style={styles.inputContainer}>
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={20}
+                  color="#F7931A"
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Password"
+                  placeholderTextColor="#666666"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                />
+                <TouchableOpacity
+                  style={styles.eyeButton}
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Ionicons
+                    name={showPassword ? "eye-off-outline" : "eye-outline"}
+                    size={20}
+                    color="#F7931A"
+                  />
+                </TouchableOpacity>
+              </View>
+              {passwordError ? (
+                <Text style={styles.errorText}>{passwordError}</Text>
+              ) : null}
 
-            <TouchableOpacity
-              onPress={handleSignIn}
-              disabled={isLoading}
-            >
-              <LinearGradient
-                colors={['#F7931A', '#000000']}
-                style={styles.loginButton}
-                start={{ x: 1, y: 0 }}
-                end={{ x: 0, y: 1 }}
+              <TouchableOpacity
+                style={styles.forgotPassword}
+                onPress={() => alert("Think Harder")}
               >
-                {isLoading ? (
-                  <ActivityIndicator color="#FFFFFF" size="small" />
-                ) : (
-                  <Text style={styles.loginButtonText}>Sign In</Text>
-                )}
-              </LinearGradient>
-            </TouchableOpacity>
+                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+              </TouchableOpacity>
 
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or continue with</Text>
-              <View style={styles.dividerLine} />
+              <TouchableOpacity
+                onPress={handleSignIn}
+                disabled={isLoading}
+              >
+                <LinearGradient
+                  colors={['#F7931A', '#000000']}
+                  style={styles.loginButton}
+                  start={{ x: 1, y: 0 }}
+                  end={{ x: 0, y: 1 }}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator color="#FFFFFF" size="small" />
+                  ) : (
+                    <Text style={styles.loginButtonText}>Sign In</Text>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+
+              <View style={styles.divider}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>or continue with</Text>
+                <View style={styles.dividerLine} />
+              </View>
+
+              <View style={styles.socialContainer}>
+                <TouchableOpacity
+                  onPress={() => alert("Implemented soon!")}
+                  style={styles.socialButton}>
+                  <Ionicons name="logo-google" size={24} color="#FFFFFF" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => alert("Implemented soon!")} style={styles.socialButton}>
+                  <Ionicons name="logo-apple" size={24} color="#FFFFFF" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => alert("Implemented soon!")}
+                  style={styles.socialButton}>
+                  <Ionicons name="logo-facebook" size={24} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
             </View>
 
-            <View style={styles.socialContainer}>
-              <TouchableOpacity
-                onPress={() => alert("Implemented soon!")}
-                style={styles.socialButton}>
-                <Ionicons name="logo-google" size={24} color="#FFFFFF" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => alert("Implemented soon!")} style={styles.socialButton}>
-                <Ionicons name="logo-apple" size={24} color="#FFFFFF" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => alert("Implemented soon!")}
-                style={styles.socialButton}>
-                <Ionicons name="logo-facebook" size={24} color="#FFFFFF" />
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>Don't have an account? </Text>
+              <TouchableOpacity onPress={navigateToSignup}>
+                <Text style={styles.signupText}>Sign Up</Text>
               </TouchableOpacity>
             </View>
           </View>
-
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={navigateToSignup}>
-              <Text style={styles.signupText}>Sign Up</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
@@ -492,6 +496,8 @@ const styles = StyleSheet.create({
     bottom: 36,
     left: 0,
     right: 0,
+    backgroundColor: "#000000",
+    paddingVertical: 10,
   },
   footerText: {
     color: "#AAAAAA",
