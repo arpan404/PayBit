@@ -27,32 +27,33 @@ export const addContact = async (
     }
 
     const userId = req.user.id;
-    const { contactUid } = req.body;
+    const { email } = req.body;
 
     // Validate input
-    if (!contactUid) {
+    if (!email) {
       res.status(400).json({
         success: false,
         code: "add-contact-e2",
-        message: "Contact UID is required",
+        message: "Email is required",
       });
       return;
     }
 
     // Verify that contact user exists
-    const contactUser = await User.findOne({ uid: contactUid });
+    console.log("Searching for user with email:", email);
+    const contactUser = await User.findOne({ email: email });
     if (!contactUser) {
       res.status(404).json({
         success: false,
         code: "add-contact-e3",
-        message: "User with the provided UID not found",
+        message: "User with the provided email not found",
       });
       return;
     }
 
     // Don't allow adding yourself as a contact
     const currentUser = await User.findById(userId);
-    if (currentUser?.uid === contactUid) {
+    if (currentUser?.email === email) {
       res.status(400).json({
         success: false,
         code: "add-contact-e4",
@@ -64,7 +65,7 @@ export const addContact = async (
     // Check if contact already exists
     const existingContact = await Contact.findOne({
       userUid: currentUser?.uid,
-      contactUid,
+      contactUid: contactUser.uid,
     });
 
     if (existingContact) {
@@ -79,7 +80,7 @@ export const addContact = async (
     // Create new contact
     const newContact = new Contact({
       userUid: currentUser?.uid,
-      contactUid,
+      contactUid: contactUser.uid,
     });
 
     await newContact.save();

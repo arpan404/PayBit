@@ -23,11 +23,8 @@ export const sendBTC = async (req: Request, res: Response): Promise<void> => {
     }
 
     // Get recipient and amount from request body
-    const { recipientMail, recipientUID, amount, note } = req.body;
-    console.log("Recipient Mail:", recipientMail);
-    console.log("Recipient UID:", recipientUID);
-    console.log("Amount:", amount);
-    console.log("Note:", note);
+    const { recipientMail, recipientUID, amount} = req.body;
+
     // Validate required fields
     if (!recipientMail && !recipientUID) {
       res.status(400).json({
@@ -149,7 +146,6 @@ export const sendBTC = async (req: Request, res: Response): Promise<void> => {
         recipientId: recipient._id,
         recipientName: recipient.fullname,
         amount: transferAmount,
-        note: note || "BTC Transfer",
         timestamp: new Date(),
       },
     });
