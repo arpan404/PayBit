@@ -122,6 +122,19 @@
 
 ---
 
+## Additional Notes
+
+1. **MongoDB**:
+   - Ensure MongoDB is running before starting the backend server. The backend relies on MongoDB for storing user and transaction data.
+
+2. **Configuration Files**:
+   - Update the configuration files for both the backend and frontend to match your environment:
+     - **Backend**: Update config with the correct Bitcoin RPC, LND, and MongoDB connection details.
+     - **Frontend**: Update config with the correct API endpoint for the backend server.
+   - These changes are necessary to ensure the server and app run smoothly on your device.
+
+---
+
 ## Contributing
 We welcome contributions! Please fork the repository and submit a pull request with your changes.
 
